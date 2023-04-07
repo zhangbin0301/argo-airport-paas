@@ -1,7 +1,7 @@
 const url = process.env.RENDER_EXTERNAL_HOSTNAME;
 const express = require("express");
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 var exec = require("child_process").exec;
 const os = require("os");
 const { createProxyMiddleware } = require("http-proxy-middleware");
