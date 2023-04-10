@@ -11,9 +11,12 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    contents: read
-    packages: write
-    id_token: write
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
