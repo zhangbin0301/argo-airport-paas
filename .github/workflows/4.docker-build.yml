@@ -12,7 +12,7 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-  LOWERCASE_IMAGE_NAME: ${{ github.repository | replace("/", "") | lower() }}
+  LOWERCASE_IMAGE_NAME: ${{ github.repository.replace("/", "").lower() }}
 
 jobs:
   build-and-push:
