@@ -7,9 +7,10 @@ WORKDIR /app
 RUN git clone https://github.com/XrayR-project/XrayR.git /app
 ENV CGO_ENABLED=0
 RUN go mod download
-RUN random=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1)) && \
-    go build -v -o "myapp-$random" -trimpath -ldflags "-s -w -buildid=" ./main
-ENV APP_BINARY_NAME="myapp-$random"
+RUN go get github.com/xtls/xray-core/transport/internet/xtls
+RUN RANDOM=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9') && \
+    go build -v -o "myapp-$RANDOM" -trimpath -ldflags "-s -w -buildid=" ./main
+ENV APP_BINARY_NAME="myapp-$RANDOM"
 
 # Build cloudflared
 ARG TARGET_GOOS
