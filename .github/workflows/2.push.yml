@@ -1,4 +1,4 @@
-name: "2.Build and push images"
+name: "2.Build and push images to Docker Hub"
 
 on:
   workflow_dispatch:

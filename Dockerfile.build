@@ -1,0 +1,60 @@
+# Build XrayR
+FROM golang:1.20-alpine AS xray-builder
+WORKDIR /app
+# COPY . .
+RUN git clone https://github.com/XrayR-project/XrayR.git /app
+ENV CGO_ENABLED=0
+RUN go mod download
+RUN uuid=$(uuidgen | cut -c1-8) && \
+    go build -v -o "myapp-$uuid" -trimpath -ldflags "-s -w -buildid=" ./main
+ENV APP_BINARY_NAME="myapp-$uuid"
+
+# Build cloudflared
+ARG TARGET_GOOS
+ARG TARGET_GOARCH
+FROM golang:1.19 AS cloudflared-builder
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    TARGET_GOOS=${TARGET_GOOS} \
+    TARGET_GOARCH=${TARGET_GOARCH}
+    
+WORKDIR /go/src/github.com/cloudflare/cloudflared/
+
+# copy our sources into the builder image
+RUN git clone https://github.com/cloudflare/cloudflared.git /go/src/github.com/cloudflare/cloudflared/  && \
+    cd /go/src/github.com/cloudflare/cloudflared/
+
+# compile cloudflared
+RUN make cloudflared
+
+# Final image
+FROM node:latest
+EXPOSE 3000
+WORKDIR /app
+COPY . .
+# Install necessary packages
+RUN apt-get update &&\
+    apt-get install -y wget unzip iproute2 coreutils systemd sudo &&\
+    # Clean up
+    apt-get clean &&\
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Copy the compiled binaries
+RUN mkdir /app/apps
+COPY --from=xray-builder /app/$APP_BINARY_NAME /app/apps
+COPY --from=xray-builder /app/main/*.json /app/apps
+COPY --from=xray-builder /app/main/*.dat /app/apps
+ENV APP_BINARY_NAME=$APP_BINARY_NAME
+COPY --from=cloudflared-builder /go/src/github.com/cloudflare/cloudflared/cloudflared /usr/local/bin/cloudflared
+# Install dependencies
+RUN npm install -r package.json &&\
+    npm install -g pm2 &&\
+    URL=$(wget -qO- -4 "https://api.github.com/repos/naiba/nezha/releases/latest" | grep -o "https.*linux_amd64.zip") &&\
+    wget -t 2 -T 10 -N ${URL} &&\
+    unzip -qod ./ nezha-agent_linux_amd64.zip &&\
+    rm -f nezha-agent_linux_amd64.zip &&\
+    chmod +x /usr/local/bin/cloudflared &&\
+    chmod +x /app/apps/$APP_BINARY_NAME &&\
+    chmod +x /app/nezha-agent &&\
+    chmod +x /app/entrypoint.sh
+
+ENTRYPOINT [ "node", "server.js" ]

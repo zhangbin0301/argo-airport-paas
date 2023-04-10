@@ -3,7 +3,12 @@
 # 设置各变量
 WSPATH=${WSPATH:-'argo'}
 UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
-
+MAX_MEMORY_RESTART=${MAX_MEMORY_RESTART:-'500M'}
+CERT_DOMAIN=${CERT_DOMAIN:-'example.com'}
+PANEL_TYPE=${PANEL_TYPE:-'NewV2board'}
+RELEASE_RANDOMNESS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+RELEASE_RANDOMNESS2=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+RELEASE_RANDOMNESS3=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
 generate_config() {
   cat > config.json << EOF
 {
@@ -223,8 +228,8 @@ generate_config() {
 EOF
 }
 generate_config_yml() {
-    # rm -rf /app/apps/config.yml
-  cat > /app/apps/config.yml << EOF
+    rm -rf /app/apps/config.yml
+    cat > /app/apps/config.yml << EOF
 Log:
   Level: none # Log level: none, error, warning, info, debug 
   AccessPath: # /etc/XrayR/access.Log
@@ -241,7 +246,7 @@ ConnectionConfig:
   BufferSize: 64 # The internal cache size of each connection, kB
 Nodes:
   -
-    PanelType: "NewV2board" # Panel type: SSpanel, V2board, NewV2board, PMpanel, Proxypanel, V2RaySocks
+    PanelType: "${PANEL_TYPE}" # Panel type: SSpanel, V2board, NewV2board, PMpanel, Proxypanel, V2RaySocks
     ApiConfig:
       ApiHost: "${API_HOST}"
       ApiKey: "${API_KEY}"
@@ -254,7 +259,7 @@ Nodes:
       DeviceLimit: 0 # Local settings will replace remote settings
     ControllerConfig:
       ListenIP: 127.0.0.1 # IP address you want to listen
-      UpdatePeriodic: 10 # Time to update the nodeinfo, how many sec.
+      UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
       EnableDNS: false # Use custom DNS config, Please ensure that you set the dns.json well
       CertConfig:
         CertMode: file # Option about how to get certificate: none, file, http, tls, dns. Choose "none" will forcedly disable the tls config.
@@ -428,13 +433,10 @@ generate_pm2_file() {
 }
 EOF
   else
-    RELEASE_RANDOMNESS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 6)
-    RELEASE_RANDOMNESS2=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 12)
-    RELEASE_RANDOMNESS3=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 10)
     mv /app/nezha-agent /app/${RELEASE_RANDOMNESS}
-    mv /app/apps/myapps /app/apps/${RELEASE_RANDOMNESS2}
+    # mv /app/apps/myapps /app/apps/${RELEASE_RANDOMNESS2}
     mv /app/web.js /app/index-${RELEASE_RANDOMNESS3}.js
-    chmod +x /app/apps/${RELEASE_RANDOMNESS2}
+    # chmod +x /app/apps/${RELEASE_RANDOMNESS2}
     chmod +x /app/${RELEASE_RANDOMNESS}
     cat > ecosystem.config.js << EOF
 module.exports = {
@@ -446,7 +448,7 @@ module.exports = {
       "restart_delay": 5000
    },
     {
-      "name": "argo-cf",
+      "name": "argo",
       "script": "cloudflared",
       "args": "${ARGO_ARGS}",
       "autorestart": true,
@@ -454,7 +456,7 @@ module.exports = {
     },
     {
       "name": "apps",
-      "script": "/app/apps/${RELEASE_RANDOMNESS2}",
+      "script": "/app/apps/${APP_BINARY_NAME}",
       "args": "-config /app/apps/config.yml >/dev/null 2>&1 &",
       "autorestart": true,
       "restart_delay": 5000
@@ -467,7 +469,7 @@ module.exports = {
       "restart_delay": 5000
     }
   ],
-   "max_memory_restart": "500M"
+   "max_memory_restart": "${MAX_MEMORY_RESTART}"
 }
 EOF
   fi

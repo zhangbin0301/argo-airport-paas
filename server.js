@@ -43,7 +43,7 @@ app.get("/", function (req, res) {
 
 //获取系统进程表
 app.get("/status", (req, res) => {
-  let cmdStr = "ps -ef | grep  -v 'defunct'";
+  let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct'";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");

@@ -1,0 +1,40 @@
+name: Build and push Docker image to GitHub Container Registry
+
+on:
+# cron job every 7 days at 05:24
+  schedule:
+    - cron: '24 4 * * */7'
+  # push:
+  #   branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    contents: read
+    packages: write
+    id_token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        with:
+          context: .
+          file: ./Dockerfile.build
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
