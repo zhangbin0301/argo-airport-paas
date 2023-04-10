@@ -6,14 +6,12 @@ name: Docker
 # documentation.
 
 on:
+# cron job every 7 days at 05:24
   schedule:
-    - cron: '38 16 * * *'
-  push:
-    branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ "main" ]
+    - cron: '24 5 * * */7'
+  # push:
+  #   branches: [main]
+  workflow_dispatch:
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -56,4 +54,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
