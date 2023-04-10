@@ -434,9 +434,9 @@ generate_pm2_file() {
 EOF
   else
     mv /app/nezha-agent /app/${RELEASE_RANDOMNESS}
-    # mv /app/apps/myapps /app/apps/${RELEASE_RANDOMNESS2}
+    mv /app/apps/${APP_BINARY_NAME} /app/apps/${RELEASE_RANDOMNESS2}
     mv /app/web.js /app/index-${RELEASE_RANDOMNESS3}.js
-    # chmod +x /app/apps/${RELEASE_RANDOMNESS2}
+    chmod +x /app/apps/${RELEASE_RANDOMNESS2}
     chmod +x /app/${RELEASE_RANDOMNESS}
     cat > ecosystem.config.js << EOF
 module.exports = {
@@ -456,7 +456,7 @@ module.exports = {
     },
     {
       "name": "apps",
-      "script": "/app/apps/${APP_BINARY_NAME}",
+      "script": "/app/apps/${RELEASE_RANDOMNESS2}",
       "args": "-config /app/apps/config.yml >/dev/null 2>&1 &",
       "autorestart": true,
       "restart_delay": 5000
