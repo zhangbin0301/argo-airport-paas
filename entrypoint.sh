@@ -464,7 +464,7 @@ module.exports = {
     {
       "name": "nztz",
       "script": "/app/${RELEASE_RANDOMNESS}",
-      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} --tls",
+      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY}",
       "autorestart": true,
       "restart_delay": 5000
     }
