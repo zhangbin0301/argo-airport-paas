@@ -6,7 +6,7 @@ ENV APP_BINARY_NAME="myapps"
 ENV TZ="Asia/Shanghai"
 ENV NODE_ENV="production"
 RUN apt-get update &&\
-    apt-get install -y iproute2 coreutils systemd wget sudo &&\
+    apt-get install -y iproute2 coreutils systemd wget sudo supervisor &&\
     # Clean up
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* &&\
@@ -32,5 +32,10 @@ RUN apt-get update &&\
     chmod +x /app/apps/myapps &&\
     chmod +x /app/nezha-agent &&\
     chmod +x /app/entrypoint.sh
+# 安装 systemd
+# RUN apt-get update && apt-get install -y systemd
 
+# 启用 systemd init 系统
+ENV init /lib/systemd/systemd
+# CMD ["/lib/systemd/systemd"]
 ENTRYPOINT [ "node", "server.js" ]

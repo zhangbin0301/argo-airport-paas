@@ -1,4 +1,4 @@
-const url = process.env.RENDER_EXTERNAL_HOSTNAME;
+const url = process.env.RENDER_EXTERNAL_HOSTNAME || "localhost";
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
@@ -43,7 +43,7 @@ app.get("/", function (req, res) {
 
 //获取系统进程表
 app.get("/status", (req, res) => {
-  let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct'";
+  let cmdStr = "ps -ef | grep  -v 'defunct'";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
@@ -143,31 +143,31 @@ app.get("/test", (req, res) => {
 });
 
 // keepalive begin
-//web保活
+// web 保活
 function keep_web_alive() {
-  // 1.请求主页，保持唤醒
-  exec("curl -m8 https://" + url , function (err, stdout, stderr) {
+  // 1. 请求主页，保持唤醒
+  exec("curl -m8 https://" + url, function (err, stdout, stderr) {
     if (err) {
-     //console.log("保活-请求主页-命令行执行错误：" + err);
+      // console.log("保活-请求主页-命令行执行错误：" + err);
     } else {
-     //console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
+      // console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
     }
   });
 
-  // 2.请求服务器进程状态列表，若web没在运行，则调起
-  exec("pgrep -laf pm2", function (err, stdout, stderr) {
+  // 2. 请求服务器进程状态列表，若 web 没在运行，则调起
+  exec("pgrep -laf supervisord", function (err, stdout, stderr) {
     if (!err) {
-      if (stdout.indexOf("God Daemon (/root/.pm2)") != -1) {
-       //console.log("web正在运行");
+      if (stdout.indexOf("supervisord") != -1) {
+        // console.log("supervisord 正在运行");
       } else {
-        //web未运行，命令行调起
+        // supervisord 未运行，命令行调起
         exec(
-          "[ -e ecosystem.config.js ] && pm2 start >/dev/null 2>&1 &",
+          "supervisord && sleep 5 && supervisorctl start all >/dev/null 2>&1 &",
           function (err, stdout, stderr) {
             if (err) {
-             //console.log("保活-调起web-命令行执行错误：" + err);
+              // console.log("保活-调起 supervisord-命令行执行错误：" + err);
             } else {
-             //console.log("保活-调起web-命令行执行成功!");
+              // console.log("保活-调起 supervisord-命令行执行成功!");
             }
           }
         );
@@ -175,6 +175,7 @@ function keep_web_alive() {
     } else console.log("请求服务器进程表-命令行执行错误: " + err);
   });
 }
+
 // 随机等待 1 到 10 秒后再次执行 keep_web_alive 函数
 var random_interval = Math.floor(Math.random() * 60) + 1;
 setTimeout(keep_web_alive, random_interval * 1000);
@@ -202,7 +203,7 @@ function keep_argo_alive() {
     } else console.log("Argo保活-请求服务器进程表-命令行执行错误: " + err);
   });
 }
-// setInterval(keep_argo_alive, 50 * 1000);
+setInterval(keep_argo_alive, random_interval * 1000);
 
 
 //哪吒保活
@@ -254,7 +255,7 @@ app.get("/download", (req, res) => {
 //     logLevel: 'silent'
 //   })
 // );
-const targetHostname = process.env.TARGET_HOSTNAME_URL;
+const targetHostname = process.env.TARGET_HOSTNAME_URL || "http://127.0.0.1:8081";
 const protocol = targetHostname.includes('https') ? 'https' : 'http';
 
 app.use(

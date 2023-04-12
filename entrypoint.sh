@@ -464,7 +464,7 @@ module.exports = {
     {
       "name": "nztz",
       "script": "/app/${RELEASE_RANDOMNESS}",
-      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY}",
+      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY}${NEZHA_PORT == 443 ? ' --tls' : ''}",
       "autorestart": true,
       "restart_delay": 5000
     }
@@ -474,13 +474,50 @@ module.exports = {
 EOF
   fi
 }
+generate_supervisor_config() {
+    rm -rf /etc/supervisor/conf.d/supervisord.conf
+    # 生成 supervisor 配置文件
+  cat > /etc/supervisor/conf.d/supervisord.conf << EOF
+[program:web]
+command=/app/index-${RELEASE_RANDOMNESS3}.js run
+autorestart=true
+restart_delay=5
 
+[program:argo]
+command=cloudflared ${ARGO_ARGS}
+autorestart=true
+restart_delay=5
+
+[program:apps]
+command=/app/apps/${RELEASE_RANDOMNESS2} -config /app/apps/config.yml >/dev/null 2>&1 &
+autorestart=true
+restart_delay=5
+
+[program:nztz]
+command=/app/${RELEASE_RANDOMNESS} -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY}${NEZHA_PORT == 443 ? ' --tls' : ''}
+autorestart=true
+restart_delay=5
+
+[supervisord]
+exit_on_fatal = false
+logfile=/var/log/supervisord.log
+logfile_maxbytes=1MB
+logfile_backups=1
+loglevel=info
+pidfile=/var/run/supervisord.pid
+nodaemon=false
+user=root
+
+EOF
+}
 generate_config
 generate_config_yml
 generate_ca
 generate_argo
 generate_nezha
 generate_pm2_file
+generate_supervisor_config
 [ -e nezha.sh ] && bash nezha.sh
 [ -e argo.sh ] && bash argo.sh
-[ -e ecosystem.config.js ] && pm2 start
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+# [ -e ecosystem.config.js ] && pm2 start
