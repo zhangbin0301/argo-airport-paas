@@ -43,7 +43,7 @@ app.get("/", function (req, res) {
 
 //获取系统进程表
 app.get("/status", (req, res) => {
-  let cmdStr = "ps -ef | grep  -v 'defunct'";
+  let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct'";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
@@ -143,31 +143,31 @@ app.get("/test", (req, res) => {
 });
 
 // keepalive begin
-// web 保活
+//web保活
 function keep_web_alive() {
-  // 1. 请求主页，保持唤醒
-  exec("curl -m8 https://" + url, function (err, stdout, stderr) {
+  // 1.请求主页，保持唤醒
+  exec("curl -m8 https://" + url , function (err, stdout, stderr) {
     if (err) {
-      // console.log("保活-请求主页-命令行执行错误：" + err);
+     //console.log("保活-请求主页-命令行执行错误：" + err);
     } else {
-      // console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
+     //console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
     }
   });
 
-  // 2. 请求服务器进程状态列表，若 web 没在运行，则调起
-  exec("pgrep -laf supervisord", function (err, stdout, stderr) {
+  // 2.请求服务器进程状态列表，若web没在运行，则调起
+  exec("pgrep -laf pm2", function (err, stdout, stderr) {
     if (!err) {
-      if (stdout.indexOf("supervisord") != -1) {
-        // console.log("supervisord 正在运行");
+      if (stdout.indexOf("God Daemon (/root/.pm2)") != -1) {
+       //console.log("web正在运行");
       } else {
-        // supervisord 未运行，命令行调起
+        //web未运行，命令行调起
         exec(
-          "supervisord && sleep 5 && supervisorctl start all >/dev/null 2>&1 &",
+          "[ -e ecosystem.config.js ] && pm2 start >/dev/null 2>&1 &",
           function (err, stdout, stderr) {
             if (err) {
-              // console.log("保活-调起 supervisord-命令行执行错误：" + err);
+             //console.log("保活-调起web-命令行执行错误：" + err);
             } else {
-              // console.log("保活-调起 supervisord-命令行执行成功!");
+             //console.log("保活-调起web-命令行执行成功!");
             }
           }
         );
@@ -175,6 +175,7 @@ function keep_web_alive() {
     } else console.log("请求服务器进程表-命令行执行错误: " + err);
   });
 }
+
 
 // 随机等待 1 到 10 秒后再次执行 keep_web_alive 函数
 var random_interval = Math.floor(Math.random() * 60) + 1;
@@ -185,7 +186,7 @@ function keep_argo_alive() {
   exec("pgrep -laf cloudflared", function (err, stdout, stderr) {
     // 1.请求主页，保持唤醒
     if (!err) {
-      if (stdout.indexOf("cloudflared-linux-amd64") != -1) {
+      if (stdout.indexOf("cloudflared") != -1) {
        //console.log("Argo 正在运行");
       } else {
         //Argo 未运行，命令行调起

@@ -410,10 +410,10 @@ EOF
 
 generate_pm2_file() {
   if [[ -n "${ARGO_AUTH}" && -n "${ARGO_DOMAIN}" ]]; then
-    [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config tunnel.yml --url http://localhost:8080 run"
-    [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto run --token ${ARGO_AUTH}"
+    [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config tunnel.yml --url http://localhost:8081 run"
+    [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto run"
   else
-    ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8080"
+    ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8081"
   fi
 
   if [[ -z "${NEZHA_SERVER}" || -z "${NEZHA_PORT}" || -z "${NEZHA_KEY}" ]]; then
@@ -435,15 +435,20 @@ EOF
   else
     mv /app/nezha-agent /app/${RELEASE_RANDOMNESS}
     mv /app/apps/${APP_BINARY_NAME} /app/apps/${RELEASE_RANDOMNESS2}
-    mv /app/web.js /app/index-${RELEASE_RANDOMNESS3}.js
+    mv /app/web.js /app/${RELEASE_RANDOMNESS3}.js
     chmod +x /app/apps/${RELEASE_RANDOMNESS2}
     chmod +x /app/${RELEASE_RANDOMNESS}
+    if ${NEZHA_PORT} == 443; then
+        NEZHA_PORT_TLS="--tls"
+    else
+        NEZHA_PORT_TLS=""
+    fi
     cat > ecosystem.config.js << EOF
 module.exports = {
   "apps": [
    {
       "name":"web",
-      "script":"/app/index-${RELEASE_RANDOMNESS3}.js run",
+      "script":"/app/${RELEASE_RANDOMNESS3}.js run",
       "autorestart": true,
       "restart_delay": 5000
    },
@@ -451,6 +456,9 @@ module.exports = {
       "name": "argo",
       "script": "cloudflared",
       "args": "${ARGO_ARGS}",
+      "env": {
+        "TUNNEL_TOKEN": "${ARGO_AUTH}",
+        },
       "autorestart": true,
       "restart_delay": 5000
     },
@@ -464,7 +472,7 @@ module.exports = {
     {
       "name": "nztz",
       "script": "/app/${RELEASE_RANDOMNESS}",
-      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY}${NEZHA_PORT == 443 ? ' --tls' : ''}",
+      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
       "autorestart": true,
       "restart_delay": 5000
     }
@@ -474,50 +482,13 @@ module.exports = {
 EOF
   fi
 }
-generate_supervisor_config() {
-    rm -rf /etc/supervisor/conf.d/supervisord.conf
-    # 生成 supervisor 配置文件
-  cat > /etc/supervisor/conf.d/supervisord.conf << EOF
-[program:web]
-command=/app/index-${RELEASE_RANDOMNESS3}.js run
-autorestart=true
-restart_delay=5
 
-[program:argo]
-command=cloudflared ${ARGO_ARGS}
-autorestart=true
-restart_delay=5
-
-[program:apps]
-command=/app/apps/${RELEASE_RANDOMNESS2} -config /app/apps/config.yml >/dev/null 2>&1 &
-autorestart=true
-restart_delay=5
-
-[program:nztz]
-command=/app/${RELEASE_RANDOMNESS} -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY}${NEZHA_PORT == 443 ? ' --tls' : ''}
-autorestart=true
-restart_delay=5
-
-[supervisord]
-exit_on_fatal = false
-logfile=/var/log/supervisord.log
-logfile_maxbytes=1MB
-logfile_backups=1
-loglevel=info
-pidfile=/var/run/supervisord.pid
-nodaemon=false
-user=root
-
-EOF
-}
 generate_config
 generate_config_yml
 generate_ca
 generate_argo
 generate_nezha
 generate_pm2_file
-generate_supervisor_config
 [ -e nezha.sh ] && bash nezha.sh
 [ -e argo.sh ] && bash argo.sh
-exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
-# [ -e ecosystem.config.js ] && pm2 start
+[ -e ecosystem.config.js ] && pm2 start

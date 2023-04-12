@@ -32,9 +32,7 @@ RUN apt-get update &&\
     chmod +x /app/apps/myapps &&\
     chmod +x /app/nezha-agent &&\
     chmod +x /app/entrypoint.sh
-# 安装 systemd
-# RUN apt-get update && apt-get install -y systemd
-
+    
 # 启用 systemd init 系统
 ENV init /lib/systemd/systemd
 # CMD ["/lib/systemd/systemd"]
