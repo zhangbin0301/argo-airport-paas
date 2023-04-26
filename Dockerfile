@@ -6,7 +6,7 @@ ENV APP_BINARY_NAME="myapps"
 ENV TZ="Asia/Shanghai"
 ENV NODE_ENV="production"
 RUN apt-get update &&\
-    apt-get install -y iproute2 coreutils systemd wget sudo supervisor &&\
+    apt-get install -y iproute2 coreutils systemd wget sudo supervisor openssh-server &&\
     # Clean up
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* &&\
@@ -32,7 +32,10 @@ RUN apt-get update &&\
     chmod +x /app/apps/myapps &&\
     chmod +x /app/nezha-agent &&\
     chmod +x /app/entrypoint.sh
-    
+# Set root password and enable password login  
+RUN echo 'root:password' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 # 启用 systemd init 系统
 ENV init /lib/systemd/systemd
 # CMD ["/lib/systemd/systemd"]
