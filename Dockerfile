@@ -38,6 +38,6 @@ RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/s
 RUN sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 # 启用 systemd init 系统
 ENV init /lib/systemd/systemd
-CMD ["/lib/systemd/systemd"]
-CMD ["/usr/sbin/sshd", "-D"]
+# CMD ["/lib/systemd/systemd"]
+# CMD ["/usr/sbin/sshd", "-D"]
 ENTRYPOINT ["node", "server.js"]
