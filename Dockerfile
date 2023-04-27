@@ -36,20 +36,6 @@ RUN apt-get update &&\
 RUN echo 'root:password' | chpasswd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-# Create and enable sshd systemd service  
-RUN echo '[Unit]
-Description=SSH service
-After=network.target
-
-[Service]
-ExecStart=/usr/sbin/sshd -D
-Restart=always
-
-[Install]
-WantedBy=multi-user.target' > /etc/systemd/system/sshd.service
-RUN systemctl daemon-reload && \
-    systemctl enable sshd.service
-# Create sshd privilege separation directory 
 # 启用 systemd init 系统
 ENV init /lib/systemd/systemd
 CMD ["/lib/systemd/systemd"]
