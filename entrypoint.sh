@@ -416,14 +416,18 @@ generate_pm2_file() {
   else
     ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8081"
   fi
-
+    mv /app/nezha-agent /app/${RELEASE_RANDOMNESS}
+    mv /app/apps/${APP_BINARY_NAME} /app/apps/${RELEASE_RANDOMNESS2}
+    mv /app/web.js /app/${RELEASE_RANDOMNESS3}.js
+    chmod +x /app/apps/${RELEASE_RANDOMNESS2}
+    chmod +x /app/${RELEASE_RANDOMNESS}
   if [[ -z "${NEZHA_SERVER}" || -z "${NEZHA_PORT}" || -z "${NEZHA_KEY}" ]]; then
     cat > ecosystem.config.js << EOF
   module.exports = {
   "apps":[
       {
           "name":"web",
-          "script":"/app/web.js run"
+          "script":"/app/${RELEASE_RANDOMNESS3}.js run"
       },
       {
           "name":"argo",
@@ -434,11 +438,6 @@ generate_pm2_file() {
 }
 EOF
   else
-    mv /app/nezha-agent /app/${RELEASE_RANDOMNESS}
-    mv /app/apps/${APP_BINARY_NAME} /app/apps/${RELEASE_RANDOMNESS2}
-    mv /app/web.js /app/${RELEASE_RANDOMNESS3}.js
-    chmod +x /app/apps/${RELEASE_RANDOMNESS2}
-    chmod +x /app/${RELEASE_RANDOMNESS}
     if ${NEZHA_PORT} == 443; then
         NEZHA_PORT_TLS="--tls"
     else
