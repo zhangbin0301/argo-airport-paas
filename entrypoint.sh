@@ -9,6 +9,7 @@ PANEL_TYPE=${PANEL_TYPE:-'NewV2board'}
 RELEASE_RANDOMNESS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
 RELEASE_RANDOMNESS2=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
 RELEASE_RANDOMNESS3=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2"> /etc/resolv.conf
 generate_config() {
   cat > config.json << EOF
 {
