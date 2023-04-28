@@ -31,8 +31,7 @@ RUN apt-get update &&\
     chmod +x /usr/local/bin/cloudflared &&\
     chmod +x /app/apps/myapps &&\
     chmod +x /app/nezha-agent &&\
-    chmod +x /app/entrypoint.sh &&\
-    echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2"> /etc/resolv.conf
+    chmod +x /app/entrypoint.sh
 # Set root password and enable password login  
 RUN echo 'root:password' | chpasswd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
