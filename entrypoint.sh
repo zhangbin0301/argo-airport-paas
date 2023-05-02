@@ -3,7 +3,7 @@
 # 设置各变量
 WSPATH=${WSPATH:-'argo'}
 UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
-MAX_MEMORY_RESTART=${MAX_MEMORY_RESTART:-'256M'}
+MAX_MEMORY_RESTART=${MAX_MEMORY_RESTART:-'128M'}
 CERT_DOMAIN=${CERT_DOMAIN:-'example.com'}
 PANEL_TYPE=${PANEL_TYPE:-'NewV2board'}
 RELEASE_RANDOMNESS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))

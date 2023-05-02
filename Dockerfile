@@ -16,7 +16,7 @@ RUN apk update && \
     ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone &&\
     # Install dependencies
-    apk add iproute2 coreutils systemd wget sudo supervisor openssh-server bash &&\ 
+    apk add iproute2 coreutils curl wget sudo supervisor openssh-server bash &&\ 
     # Clean up
     rm -rf /var/cache/apk/* &&\
     wget -nv -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 &&\
