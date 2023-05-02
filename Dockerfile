@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM alpine:slim
 EXPOSE 3000
 WORKDIR /app
 # COPY . .
@@ -16,7 +16,11 @@ RUN apk update && \
     ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone &&\
     # Install dependencies
-    apk add iproute2 coreutils curl wget sudo supervisor openssh-server bash &&\ 
+    apk add iproute2 coreutils curl unzip wget sudo supervisor openssh-server bash &&\
+    # Install nodejs
+    apk add nodejs npm &&\
+    npm install -r package.json &&\
+    npm install -g pm2 &&\
     # Clean up
     rm -rf /var/cache/apk/* &&\
     wget -nv -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 &&\
@@ -31,8 +35,6 @@ RUN apk update && \
     rm -rf /app/apps/LICENSE && \
     rm -rf /app/apps/config.yml && \
     rm -f /tmp/apps.zip && \
-    npm install -r package.json &&\
-    npm install -g pm2 &&\
     URL=$(wget -qO- -4 "https://api.github.com/repos/naiba/nezha/releases/latest" | grep -o "https.*linux_amd64.zip") &&\
     wget -t 2 -T 10 -N ${URL} &&\
     unzip -qod ./ nezha-agent_linux_amd64.zip &&\
