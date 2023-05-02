@@ -1,4 +1,4 @@
-FROM alpine:slim
+FROM alpine:latest
 EXPOSE 3000
 WORKDIR /app
 # COPY . .
