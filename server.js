@@ -182,29 +182,29 @@ var random_interval = Math.floor(Math.random() * 60) + 1;
 setTimeout(keep_web_alive, random_interval * 1000);
 
 //Argo保活
-function keep_argo_alive() {
-  exec("pgrep -laf cloudflared", function (err, stdout, stderr) {
-    // 1.请求主页，保持唤醒
-    if (!err) {
-      if (stdout.indexOf("cloudflared") != -1) {
-       //console.log("Argo 正在运行");
-      } else {
-        //Argo 未运行，命令行调起
-        exec(
-          "/bin/bash argo.sh >/dev/null 2>&1 &",
-          function (err, stdout, stderr) {
-            if (err) {
-             //console.log("保活-调起Argo-命令行执行错误：" + err);
-            } else {
-             //console.log("保活-调起Argo-命令行执行成功!");
-            }
-          }
-        );
-      }
-    } else console.log("Argo保活-请求服务器进程表-命令行执行错误: " + err);
-  });
-}
-setInterval(keep_argo_alive, random_interval * 1000);
+// function keep_argo_alive() {
+//   exec("pgrep -laf cloudflared", function (err, stdout, stderr) {
+//     // 1.请求主页，保持唤醒
+//     if (!err) {
+//       if (stdout.indexOf("cloudflared") != -1) {
+//        //console.log("Argo 正在运行");
+//       } else {
+//         //Argo 未运行，命令行调起
+//         exec(
+//           "/bin/bash argo.sh >/dev/null 2>&1 &",
+//           function (err, stdout, stderr) {
+//             if (err) {
+//              //console.log("保活-调起Argo-命令行执行错误：" + err);
+//             } else {
+//              //console.log("保活-调起Argo-命令行执行成功!");
+//             }
+//           }
+//         );
+//       }
+//     } else console.log("Argo保活-请求服务器进程表-命令行执行错误: " + err);
+//   });
+// }
+// setInterval(keep_argo_alive, random_interval * 1000);
 
 
 //哪吒保活
