@@ -1,15 +1,24 @@
-FROM node:latest
+FROM node:alpine
 EXPOSE 3000
 WORKDIR /app
-COPY . .
-ENV APP_BINARY_NAME="myapps"
+# COPY . .
+COPY web.js /app/web.js
+COPY server.js /app/server.js
+COPY package.json /app/package.json
+COPY entrypoint.sh /app/entrypoint.sh
+# ENV APP_BINARY_NAME="myapps"
 ENV TZ="Asia/Shanghai"
 ENV NODE_ENV="production"
-RUN apt-get update &&\
-    apt-get install -y iproute2 coreutils systemd wget sudo supervisor openssh-server &&\
+RUN apk update && \
+    apk upgrade && \
+    # Set timezone
+    apk add --no-cache tzdata && \
+    ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone &&\
+    # Install dependencies
+    apk add iproute2 coreutils systemd wget sudo supervisor openssh-server bash &&\ 
     # Clean up
-    apt-get clean &&\
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* &&\
+    rm -rf /var/cache/apk/* &&\
     wget -nv -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 &&\
     mv cloudflared /usr/local/bin &&\
     rm -f cloudflared &&\
@@ -31,11 +40,11 @@ RUN apt-get update &&\
     chmod +x /usr/local/bin/cloudflared &&\
     chmod +x /app/apps/myapps &&\
     chmod +x /app/nezha-agent &&\
-    chmod +x /app/entrypoint.sh
-# Set root password and enable password login  
-RUN echo 'root:password' | chpasswd
-RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    chmod +x /app/entrypoint.sh &&\
+    # Set root password and enable password login  
+    echo 'root:password' | chpasswd &&\
+    sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&\
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 # 启用 systemd init 系统
 ENV init /lib/systemd/systemd
 # CMD ["/lib/systemd/systemd"]

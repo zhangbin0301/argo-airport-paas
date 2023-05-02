@@ -9,6 +9,8 @@ PANEL_TYPE=${PANEL_TYPE:-'NewV2board'}
 RELEASE_RANDOMNESS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
 RELEASE_RANDOMNESS2=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
 RELEASE_RANDOMNESS3=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+RELEASE_RANDOMNESS4=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+# change dns to cloudflare
 echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2"> /etc/resolv.conf
 generate_config() {
   cat > config.json << EOF
@@ -253,14 +255,14 @@ Nodes:
       ApiKey: "${API_KEY}"
       NodeID: ${NODE_ID}
       NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan
-      Timeout: 60 # Timeout for the api request
+      Timeout: 120 # Timeout for the api request
       EnableVless: false # Enable Vless for V2ray Type
       EnableXTLS: false # Enable XTLS for V2ray and Trojan
       SpeedLimit: 0 # Mbps, Local settings will replace remote settings
       DeviceLimit: 0 # Local settings will replace remote settings
     ControllerConfig:
       ListenIP: 127.0.0.1 # IP address you want to listen
-      UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
+      UpdatePeriodic: 120 # Time to update the nodeinfo, how many sec.
       EnableDNS: false # Use custom DNS config, Please ensure that you set the dns.json well
       CertConfig:
         CertMode: file # Option about how to get certificate: none, file, http, tls, dns. Choose "none" will forcedly disable the tls config.
@@ -418,18 +420,22 @@ generate_pm2_file() {
     fi
     nezha_agent_file=/app/nezha-agent
     nezha_agent_new_location=/app/${RELEASE_RANDOMNESS}
-    app_binary_name_file=/app/apps/${APP_BINARY_NAME}
+    app_binary_name_file=/app/apps/myapps
     app_binary_name_new_location=/app/apps/${RELEASE_RANDOMNESS2}
     web_js_file=/app/web.js
     web_js_new_location=/app/${RELEASE_RANDOMNESS3}.js
+    cloudflare_tunnel_file=/usr/local/bin/cloudflared
+    cloudflare_tunnel_new_location=/usr/local/bin/${RELEASE_RANDOMNESS4}
     
     mv "$nezha_agent_file" "$nezha_agent_new_location"
     mv "$app_binary_name_file" "$app_binary_name_new_location"
     mv "$web_js_file" "$web_js_new_location"
+    mv "$cloudflare_tunnel_file" "$cloudflare_tunnel_new_location"
     
     chmod +x "$app_binary_name_new_location"
     chmod +x "$nezha_agent_new_location"
     chmod +x "$web_js_new_location"
+    chmod +x "$cloudflare_tunnel_new_location"
     
     NEZHA_PORT_TLS=${NEZHA_PORT:=80}
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
@@ -443,7 +449,7 @@ generate_pm2_file() {
       },
       {
           "name":"argo",
-          "script":"cloudflared",
+          "script":"${cloudflare_tunnel_new_location}",
           "args":"${ARGO_ARGS}"
       }
   ]
@@ -455,27 +461,27 @@ module.exports = {
   "apps": [
     {
       "name": "argo",
-      "script": "cloudflared",
+      "script": "${cloudflare_tunnel_new_location}",
       "args": "${ARGO_ARGS}",
       "env": {
         "TUNNEL_TOKEN": "${ARGO_AUTH}",
         },
       "autorestart": true,
-      "restart_delay": 5000
+      "restart_delay": 1000
     },
     {
       "name": "apps",
       "script": "${app_binary_name_new_location}",
       "args": "-config /app/apps/config.yml >/dev/null 2>&1 &",
       "autorestart": true,
-      "restart_delay": 5000
+      "restart_delay": 1000
     },
     {
       "name": "nztz",
       "script": "${nezha_agent_new_location}",
       "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
       "autorestart": true,
-      "restart_delay": 5000
+      "restart_delay": 1000
     }
   ],
    "max_memory_restart": "${MAX_MEMORY_RESTART}"
