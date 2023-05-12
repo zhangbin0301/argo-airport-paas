@@ -79,7 +79,7 @@ app.get("/listen", (req, res) => {
 
 //获取数据
 app.get("/list", (req, res) => {
-  let cmdStr = "cat list";
+  let cmdStr = "bash argo.sh && cat list";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
@@ -135,11 +135,11 @@ app.get("/info", (req, res) => {
     } else {
       res.send(
         "命令行执行结果：\n" +
-          "Linux System:" +
-          stdout +
-          "\nRAM:" +
-          os.totalmem() / 1000 / 1000 +
-          "MB"
+        "Linux System:" +
+        stdout +
+        "\nRAM:" +
+        os.totalmem() / 1000 / 1000 +
+        "MB"
       );
     }
   });
@@ -282,7 +282,7 @@ app.use(
     pathRewrite: {
       "^/": "/",
     },
-    onProxyReq: function onProxyReq(proxyReq, req, res) {},
+    onProxyReq: function onProxyReq(proxyReq, req, res) { },
     logLevel: "silent",
   })
 );

@@ -240,10 +240,10 @@ generate_config() {
             "tag":"WARP",
             "protocol":"wireguard",
             "settings":{
-                "secretKey":"cKE7LmCF61IhqqABGhvJ44jWXp8fKymcMAEVAzbDF2k=",
+                "secretKey":"yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs=",
                 "address":[
                     "172.16.0.2/32",
-                    "fd01:5ca1:ab1e:823e:e094:eb1c:ff87:1fab/128"
+                    "2606:4700:110:86c2:d7ca:13d:b14a:e7bf/128"
                 ],
                 "peers":[
                     {
@@ -295,14 +295,14 @@ Nodes:
       ApiKey: "${API_KEY}"
       NodeID: ${NODE_ID}
       NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan
-      Timeout: 120 # Timeout for the api request
+      Timeout: 240 # Timeout for the api request
       EnableVless: false # Enable Vless for V2ray Type
       EnableXTLS: false # Enable XTLS for V2ray and Trojan
       SpeedLimit: 0 # Mbps, Local settings will replace remote settings
       DeviceLimit: 0 # Local settings will replace remote settings
     ControllerConfig:
       ListenIP: 127.0.0.1 # IP address you want to listen
-      UpdatePeriodic: 120 # Time to update the nodeinfo, how many sec.
+      UpdatePeriodic: 240 # Time to update the nodeinfo, how many sec.
       EnableDNS: false # Use custom DNS config, Please ensure that you set the dns.json well
       CertConfig:
         CertMode: file # Option about how to get certificate: none, file, http, tls, dns. Choose "none" will forcedly disable the tls config.
