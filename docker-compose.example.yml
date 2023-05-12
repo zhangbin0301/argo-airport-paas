@@ -1,0 +1,23 @@
+# build image
+services:
+  web:
+    # build: .
+    image: ghcr.io/3kmfi6hp/argo-airport-paas:main
+    ports:
+      - "3000:3000"
+    # volumes:
+    #   - ./entrypoint.sh:/app/entrypoint.sh:ro
+    #   - ./server.js:/app/server.js:ro
+    environment:
+      - NEZHA_KEY=
+      - PORT=
+      - NEZHA_SERVER=
+      - ARGO_AUTH=
+      - API_KEY=
+      - CERT_DOMAIN=
+      - TARGET_HOSTNAME_URL=
+      - ARGO_DOMAIN=
+      - NODE_ID=
+      - API_HOST=
+      - NEZHA_PORT=
+      - MAX_MEMORY_RESTART=
