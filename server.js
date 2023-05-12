@@ -64,7 +64,17 @@ app.get("/env", (req, res) => {
     }
   });
 });
-
+// 获取系统IP地址
+app.get("/ip", (req, res) => {
+  let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+    } else {
+      res.type("html").send("<pre>获取系统IP地址：\n" + stdout + "</pre>");
+    }
+  });
+});
 //获取系统监听端口
 app.get("/listen", (req, res) => {
   let cmdStr = "ss -nltp && ss";
@@ -84,7 +94,7 @@ app.get("/list", (req, res) => {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
     } else {
-      res.type("html").send("<pre>数据：\n\n" + stdout + "</pre>");
+      res.type("html").send("<pre>优选IP节点数据：\n\n" + stdout + "</pre>");
     }
   });
 });
