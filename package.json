@@ -4,7 +4,7 @@
   "description": "Express Hello World on Render",
   "main": "server.js",
   "repository": "",
-  "author": "fscarmen",
+  "author": "Render",
   "license": "MIT",
   "private": false,
   "scripts": {
