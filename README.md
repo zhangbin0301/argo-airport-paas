@@ -1,6 +1,12 @@
 # argo-airport-paas
 
-For deploy: <https://github.com/3Kmfi6HP/paas-deploy> 不需要自己编译镜像，直接使用已经编译好的镜像，缩短paas deploy的时间。
+本项目是基于 [Argo-X-Container-PaaS](https://github.com/fscarmen2/Argo-X-Container-PaaS) 修改而来
+
+1. 加入了 [v2board](https://github.com/v2board/v2board) 的支持，可以直接使用 v2board 的 API 来管理节点。
+
+2. 加入了随机文件名的支持，可以防止被封号。
+
+3. 简化部署 For deploy: [https://github.com/3Kmfi6HP/paas-deploy](https://github.com/3Kmfi6HP/paas-deploy) 不需要自己编译镜像，直接使用已经编译好的镜像，缩短 paas deploy 的时间。
 
 ## 环境变量说明
 
@@ -31,13 +37,13 @@ TUNNEL_TRANSPORT_PROTOCOL # 设置cloudflared 传输协议 默认为 quic 可选
 
 ## 使用 ssh 连接容器
 
-在本地连接容器的 2222 端口的ssh需要连接对应容器的节点IP。
+在本地连接容器的 2222 端口的 ssh 需要连接对应容器的节点 IP。
 
 ```bash
 ssh -p 2222 root@127.0.0.1
 ```
 
-也可以使用vscode的ssh插件连接容器，实现远程开发。
+也可以使用 vscode 的 ssh 插件连接容器，实现远程开发。
 
 ```yaml
 Host 127.0.0.1
@@ -59,7 +65,7 @@ ssh-keygen -t rsa -b 4096 -C "" -f id_rsa
 ## 查看容器信息
 
 打开浏览器访问 `https://argo.example.com/list` 即可查看节点信息
-**注意** 请将 argo.example.com 替换为你的容器域名，节点信息里的连接域名已经设置为优选IP，不需要再另外做修改。
+**注意** 请将 argo.example.com 替换为你的容器域名，节点信息里的连接域名已经设置为优选 IP，不需要再另外做修改。
 
 ### 更多信息查看
 
