@@ -4,10 +4,10 @@ mkdir ${HOME}/custom_ssh
 ssh-keygen -f ${HOME}/custom_ssh/ssh_host_rsa_key -N '' -t rsa
 ssh-keygen -f ${HOME}/custom_ssh/ssh_host_dsa_key -N '' -t dsa
 mkdir ${HOME}/.ssh
-if [ -n "$SSH_PUB" ]; then
+if [ -n "$SSH_PUB_KEY" ]; then
     # echo "${SSH_HOST_RSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_rsa_key
     # echo "${SSH_HOST_DSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_dsa_key
-    echo "${SSH_PUB}" >> ${HOME}/.ssh/authorized_keys
+    echo "${SSH_PUB_KEY}" >> ${HOME}/.ssh/authorized_keys
     cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >> ${HOME}/.ssh/authorized_keys
     cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >> ${HOME}/.ssh/authorized_keys
 fi
@@ -34,11 +34,8 @@ PidFile ${HOME}/custom_ssh/sshd.pid
 EOF
 chmod 600 ${HOME}/custom_ssh/*
 chmod 644 ${HOME}/custom_ssh/sshd_config
-# save as alist.log
-# cd ${HOME}/alist && ./alist admin
-
-pm2 start "/usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config" --name sshd --no-autorestart
-
+# pm2 start "/usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config" --name sshd --no-autorestart
+/usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config -D &
 echo "----- Process ID : ${HOME}/custom_ssh/sshd.pid -------"
 # 设置各变量
 WSPATH=${WSPATH:-'argo'}
@@ -378,40 +375,40 @@ argo_type() {
 }
 
 export_list() {
-  VMESS="{ \"v\": \"2\", \"ps\": \"Argo-Vmess\", \"add\": \"icook.hk\", \"port\": \"443\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\${ARGO_DOMAIN}\", \"path\": \"/${WSPATH}-vmess?ed=2048\", \"tls\": \"tls\", \"sni\": \"\${ARGO_DOMAIN}\", \"alpn\": \"\" }"
+  VMESS="{ \"v\": \"2\", \"ps\": \"Argo-Vmess\", \"add\": \"cdn.chigua.tk\", \"port\": \"443\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\${ARGO_DOMAIN}\", \"path\": \"/${WSPATH}-vmess?ed=2048\", \"tls\": \"tls\", \"sni\": \"\${ARGO_DOMAIN}\", \"alpn\": \"\" }"
 
   cat > list << EOF
 *******************************************
 V2-rayN:
 ----------------------------
-vless://${UUID}@icook.hk:443?encryption=none&security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-vless?ed=2048#Argo-Vless
+vless://${UUID}@cdn.chigua.tk:443?encryption=none&security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-vless?ed=2048#Argo-Vless
 ----------------------------
 vmess://\$(echo \$VMESS | base64 -w0)
 ----------------------------
-trojan://${UUID}@icook.hk:443?security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-trojan?ed=2048#Argo-Trojan
+trojan://${UUID}@cdn.chigua.tk:443?security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-trojan?ed=2048#Argo-Trojan
 ----------------------------
-ss://$(echo "chacha20-ietf-poly1305:${UUID}@icook.hk:443" | base64 -w0)@icook.hk:443#Argo-Shadowsocks
+ss://$(echo "chacha20-ietf-poly1305:${UUID}@cdn.chigua.tk:443" | base64 -w0)@cdn.chigua.tk:443#Argo-Shadowsocks
 由于该软件导出的链接不全，请自行处理如下: 传输协议: WS ， 伪装域名: \${ARGO_DOMAIN} ，路径: /${WSPATH}-shadowsocks?ed=2048 ， 传输层安全: tls ， sni: \${ARGO_DOMAIN}
 *******************************************
 小火箭:
 ----------------------------
-vless://${UUID}@icook.hk:443?encryption=none&security=tls&type=ws&host=\${ARGO_DOMAIN}&path=/${WSPATH}-vless?ed=2048&sni=\${ARGO_DOMAIN}#Argo-Vless
+vless://${UUID}@cdn.chigua.tk:443?encryption=none&security=tls&type=ws&host=\${ARGO_DOMAIN}&path=/${WSPATH}-vless?ed=2048&sni=\${ARGO_DOMAIN}#Argo-Vless
 ----------------------------
-vmess://$(echo "none:${UUID}@icook.hk:443" | base64 -w0)?remarks=Argo-Vmess&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-vmess?ed=2048&obfs=websocket&tls=1&peer=\${ARGO_DOMAIN}&alterId=0
+vmess://$(echo "none:${UUID}@cdn.chigua.tk:443" | base64 -w0)?remarks=Argo-Vmess&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-vmess?ed=2048&obfs=websocket&tls=1&peer=\${ARGO_DOMAIN}&alterId=0
 ----------------------------
-trojan://${UUID}@icook.hk:443?peer=\${ARGO_DOMAIN}&plugin=obfs-local;obfs=websocket;obfs-host=\${ARGO_DOMAIN};obfs-uri=/${WSPATH}-trojan?ed=2048#Argo-Trojan
+trojan://${UUID}@cdn.chigua.tk:443?peer=\${ARGO_DOMAIN}&plugin=obfs-local;obfs=websocket;obfs-host=\${ARGO_DOMAIN};obfs-uri=/${WSPATH}-trojan?ed=2048#Argo-Trojan
 ----------------------------
-ss://$(echo "chacha20-ietf-poly1305:${UUID}@icook.hk:443" | base64 -w0)?obfs=wss&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-shadowsocks?ed=2048#Argo-Shadowsocks
+ss://$(echo "chacha20-ietf-poly1305:${UUID}@cdn.chigua.tk:443" | base64 -w0)?obfs=wss&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-shadowsocks?ed=2048#Argo-Shadowsocks
 *******************************************
 Clash:
 ----------------------------
-- {name: Argo-Vless, type: vless, server: icook.hk, port: 443, uuid: ${UUID}, tls: true, servername: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: {path: /${WSPATH}-vless?ed=2048, headers: { Host: \${ARGO_DOMAIN}}}, udp: true}
+- {name: Argo-Vless, type: vless, server: cdn.chigua.tk, port: 443, uuid: ${UUID}, tls: true, servername: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: {path: /${WSPATH}-vless?ed=2048, headers: { Host: \${ARGO_DOMAIN}}}, udp: true}
 ----------------------------
-- {name: Argo-Vmess, type: vmess, server: icook.hk, port: 443, uuid: ${UUID}, alterId: 0, cipher: none, tls: true, skip-cert-verify: true, network: ws, ws-opts: {path: /${WSPATH}-vmess?ed=2048, headers: {Host: \${ARGO_DOMAIN}}}, udp: true}
+- {name: Argo-Vmess, type: vmess, server: cdn.chigua.tk, port: 443, uuid: ${UUID}, alterId: 0, cipher: none, tls: true, skip-cert-verify: true, network: ws, ws-opts: {path: /${WSPATH}-vmess?ed=2048, headers: {Host: \${ARGO_DOMAIN}}}, udp: true}
 ----------------------------
-- {name: Argo-Trojan, type: trojan, server: icook.hk, port: 443, password: ${UUID}, udp: true, tls: true, sni: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: { path: /${WSPATH}-trojan?ed=2048, headers: { Host: \${ARGO_DOMAIN} } } }
+- {name: Argo-Trojan, type: trojan, server: cdn.chigua.tk, port: 443, password: ${UUID}, udp: true, tls: true, sni: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: { path: /${WSPATH}-trojan?ed=2048, headers: { Host: \${ARGO_DOMAIN} } } }
 ----------------------------
-- {name: Argo-Shadowsocks, type: ss, server: icook.hk, port: 443, cipher: chacha20-ietf-poly1305, password: ${UUID}, plugin: v2ray-plugin, plugin-opts: { mode: websocket, host: \${ARGO_DOMAIN}, path: /${WSPATH}-shadowsocks?ed=2048, tls: true, skip-cert-verify: false, mux: false } }
+- {name: Argo-Shadowsocks, type: ss, server: cdn.chigua.tk, port: 443, cipher: chacha20-ietf-poly1305, password: ${UUID}, plugin: v2ray-plugin, plugin-opts: { mode: websocket, host: \${ARGO_DOMAIN}, path: /${WSPATH}-shadowsocks?ed=2048, tls: true, skip-cert-verify: false, mux: false } }
 *******************************************
 EOF
   cat list
@@ -438,8 +435,8 @@ check_variable() {
 
 # 下载最新版本 Nezha Agent
 download_agent() {
-  if [ ! -e nezha-agent ]; then
-    URL=\$(wget -qO- -4 "https://api.github.com/repos/naiba/nezha/releases/latest" | grep -o "https.*linux_amd64.zip")
+  if [ ! -e ${RELEASE_RANDOMNESS} ]; then
+    URL="https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip"
     wget -t 2 -T 10 -N \${URL}
     unzip -qod ./ nezha-agent_linux_amd64.zip && rm -f nezha-agent_linux_amd64.zip
   fi
@@ -479,20 +476,36 @@ generate_pm2_file() {
     
     NEZHA_PORT_TLS=${NEZHA_PORT:=80}
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
-    if [[ -z "${NEZHA_SERVER}" || -z "${NEZHA_PORT}" || -z "${NEZHA_KEY}" || -z "${API_HOST}" || -z "${API_KEY}" ]]; then
+    if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
     cat > ecosystem.config.js << EOF
   module.exports = {
   "apps":[
       {
           "name":"web",
-          "script":"${web_js_new_location} run"
+          "script":"${web_js_new_location} run",
+          "autorestart": true,
+          "restart_delay": 1000
       },
       {
           "name":"argo",
           "script":"${cloudflare_tunnel_new_location}",
-          "args":"${ARGO_ARGS}"
+          "args":"${ARGO_ARGS}",
+          "autorestart": true,
+          "restart_delay": 1000
+EOF
+  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
+      },
+      {
+          "name":"nezha",
+          "script": "${nezha_agent_new_location}",
+          "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
+          "autorestart": true,
+          "restart_delay": 1000
+EOF
+  cat >> ecosystem.config.js << EOF
       }
-  ]
+  ],
+   "max_memory_restart": "${MAX_MEMORY_RESTART}"
 }
 EOF
     else
