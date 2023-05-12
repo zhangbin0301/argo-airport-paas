@@ -3,9 +3,7 @@
 本项目是基于 [Argo-X-Container-PaaS](https://github.com/fscarmen2/Argo-X-Container-PaaS) 修改而来
 
 1. 加入了 [v2board](https://github.com/v2board/v2board) 的支持，可以直接使用 v2board 的 API 来管理节点。
-
 2. 加入了随机文件名的支持，可以防止被封号。
-
 3. 简化部署 For deploy: [https://github.com/3Kmfi6HP/paas-deploy](https://github.com/3Kmfi6HP/paas-deploy) 不需要自己编译镜像，直接使用已经编译好的镜像，缩短 paas deploy 的时间。
 
 ## 环境变量说明
@@ -70,7 +68,10 @@ ssh-keygen -t rsa -b 4096 -C "" -f id_rsa
 ### 更多信息查看
 
 浏览器访问 `https://argo.example.com/info` 查看系统信息
+
 访问 `https://argo.example.com/env` 查看环境变量
-访问 `https://argo.example.com/listen` 查看监听端口 (如果你的容器内服务是监听 3000 端口，那么这里就会显示 3000)， 也可以通过环境变量 PORT 来设置监听端口
-这里还会显示容器内的网络连接信息，可以用来排查网络问题。
+
+访问 `https://argo.example.com/listen` 查看监听端口
+
+(如果你的容器内服务是监听 3000 端口，那么这里就会显示 3000)， 也可以通过环境变量 PORT 来设置监听端口，这里还会显示容器内的网络连接信息，可以用来排查网络问题。
 其他信息可以省略...
