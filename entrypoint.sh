@@ -1,5 +1,45 @@
 #!/usr/bin/env bash
+# install sshd and generate host keys
+mkdir ${HOME}/custom_ssh
+ssh-keygen -f ${HOME}/custom_ssh/ssh_host_rsa_key -N '' -t rsa
+ssh-keygen -f ${HOME}/custom_ssh/ssh_host_dsa_key -N '' -t dsa
+mkdir ${HOME}/.ssh
+if [ -n "$SSH_PUB" ]; then
+    # echo "${SSH_HOST_RSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_rsa_key
+    # echo "${SSH_HOST_DSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_dsa_key
+    echo "${SSH_PUB}" >> ${HOME}/.ssh/authorized_keys
+    cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >> ${HOME}/.ssh/authorized_keys
+    cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >> ${HOME}/.ssh/authorized_keys
+fi
+chmod 600 ${HOME}/.ssh/authorized_keys
+chmod 700 ${HOME}/.ssh
+cat << EOF > ${HOME}/custom_ssh/sshd_config
+Port 2222
+HostKey ${HOME}/custom_ssh/ssh_host_rsa_key
+HostKey ${HOME}/custom_ssh/ssh_host_dsa_key
+AuthorizedKeysFile  ${HOME}/.ssh/authorized_keys
+PasswordAuthentication no
+#PermitEmptyPasswords yes
+PermitRootLogin yes
+PubkeyAuthentication yes
+## Enable DEBUG log.
+LogLevel DEBUG
+ChallengeResponseAuthentication no
+# UsePAM no
+X11Forwarding yes
+PrintMotd no
+AcceptEnv LANG LC_*
+Subsystem   sftp    /usr/lib/ssh/sftp-server
+PidFile ${HOME}/custom_ssh/sshd.pid
+EOF
+chmod 600 ${HOME}/custom_ssh/*
+chmod 644 ${HOME}/custom_ssh/sshd_config
+# save as alist.log
+# cd ${HOME}/alist && ./alist admin
 
+pm2 start "/usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config" --name sshd --no-autorestart
+
+echo "----- Process ID : ${HOME}/custom_ssh/sshd.pid -------"
 # 设置各变量
 WSPATH=${WSPATH:-'argo'}
 UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
