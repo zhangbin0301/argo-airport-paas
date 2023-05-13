@@ -60,7 +60,7 @@ RUN mkdir /app/apps
 COPY --from=xrayr-builder /app/myapps /app/apps
 COPY --from=xrayr-builder /app/main/*.json /app/apps
 COPY --from=xrayr-builder /app/main/*.dat /app/apps
-COPY --from=xray-builder /src/web /app/web.js
+# COPY --from=xray-builder /src/web /app/web.js
 COPY --from=cloudflared-builder /go/src/github.com/cloudflare/cloudflared/cloudflared /usr/local/bin/cloudflared
 # Install dependencies
 RUN npm install -r package.json &&\
