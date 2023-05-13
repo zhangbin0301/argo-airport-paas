@@ -1,0 +1,77 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+jobs:
+  test:
+    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+    docker:
+      - image: circleci/cci-demo-docker-primary:0.0.2
+    # environment:
+    # # Customize the v2board environment here
+    # API_HOST: https://v2.circleci-dev.example.com
+    # API_KEY: xxxx
+    # NODE_ID: 55
+    # # Customize the argo environment here
+    # ARGO_DOMAIN: circleci-dev.example.com
+    # ARGO_AUTH: xxxx
+    # TUNNEL_TRANSPORT_PROTOCOL: http2
+    # # Customize the nezha environment here
+    # NEZHA_KEY: xxxx
+    # NEZHA_PORT: 555
+    # NEZHA_SERVER: nz-circleci-dev.example.com
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    steps:
+      - checkout
+      # This should go into custom primary image, here's only for the sake of explanation
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+
+      - run:
+          name: Build service
+          command: make
+
+      - run:
+          name: Build and run Docker image
+          command: |
+            TAG="0.1.${CIRCLE_BUILD_NUM}"
+            docker build -t circleci/cci-demo-docker:$TAG .
+            docker run --rm circleci/cci-demo-docker:$TAG
+            
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+
+      - store_test_results:
+          path: /tmp/test-results
+      # - restore_cache:
+      #     # See the configuration reference documentation for more details on using restore_cache and save_cache steps
+      #     # https://circleci.com/docs/2.0/configuration-reference/?section=reference#save_cache
+      #     keys:
+      #       - node-deps-v1-{{ .Branch }}-{{checksum "package.json"}}
+      # - run:
+      #     name: install packages
+      #     command: npm install && apt-get update && apt-get install -y curl
+      # - save_cache:
+      #     key: node-deps-v1-{{ .Branch }}-{{checksum "package.json"}}
+      #     paths:
+      #       - ~/.npm
+      # - run:
+      #     name: Run service
+      #     command: node server.js & pid=$! && sleep 600 && kill $pid
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+workflows:
+  orb-free-workflow:
+    jobs:
+      - test
