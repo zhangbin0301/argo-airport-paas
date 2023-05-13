@@ -2,17 +2,17 @@ name: "2.Build and push images to Docker Hub"
 
 on:
   workflow_dispatch:
-  
+
 jobs:
   Building:
-      runs-on: ubuntu-latest
-      name: "2. Build Argo-X images"
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        DOCKERHUB_REPOSITORY: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
+    runs-on: ubuntu-latest
+    name: "2. Build Argo-X images"
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKERHUB_REPOSITORY: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
 
-      steps:
+    steps:
       - name: Checkout code
         uses: actions/checkout@v3.3.0
         with:

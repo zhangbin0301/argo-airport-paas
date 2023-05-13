@@ -2,17 +2,17 @@ name: "1.Compress files to tar.gz"
 
 on:
   workflow_dispatch:
-  
+
 jobs:
   Building:
-      runs-on: ubuntu-latest
-      name: "Compress files "
-      env:
-        EMAIL: ${{ secrets.GH_EMAIL }}
-        NAME: ${{ secrets.GH_USERNAME }}
-        TOKEN: ${{ secrets.TOKEN }}
+    runs-on: ubuntu-latest
+    name: "Compress files "
+    env:
+      EMAIL: ${{ secrets.GH_EMAIL }}
+      NAME: ${{ secrets.GH_USERNAME }}
+      TOKEN: ${{ secrets.TOKEN }}
 
-      steps:
+    steps:
       - name: Compress files
         run: |
           git config --global user.email "${{ env.EMAIL }}"
