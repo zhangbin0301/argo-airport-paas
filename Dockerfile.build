@@ -69,7 +69,7 @@ RUN npm install -r package.json &&\
     unzip -qod ./ nezha-agent_linux_amd64.zip &&\
     rm -f nezha-agent_linux_amd64.zip &&\
     chmod +x /usr/local/bin/cloudflared &&\
-    chmod +x /app/apps/myapp &&\
+    chmod +x /app/apps/myapps &&\
     chmod +x /app/nezha-agent &&\
     chmod +x /app/entrypoint.sh &&\
     chmod +x /app/web.js &&\
