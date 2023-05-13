@@ -490,13 +490,16 @@ generate_pm2_file() {
           "name":"argo",
           "script":"${cloudflare_tunnel_new_location}",
           "args":"${ARGO_ARGS}",
+          "env": {
+            "TUNNEL_TOKEN": "${ARGO_AUTH}",
+          },
           "autorestart": true,
           "restart_delay": 1000
 EOF
   [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
       },
       {
-          "name":"nezha",
+          "name":"nztz",
           "script": "${nezha_agent_new_location}",
           "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
           "autorestart": true,
@@ -528,6 +531,8 @@ module.exports = {
       "args": "-config /app/apps/config.yml >/dev/null 2>&1 &",
       "autorestart": true,
       "restart_delay": 1000
+EOF
+  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
     },
     {
       "name": "nztz",
@@ -535,6 +540,8 @@ module.exports = {
       "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
       "autorestart": true,
       "restart_delay": 1000
+EOF
+  cat >> ecosystem.config.js << EOF
     }
   ],
    "max_memory_restart": "${MAX_MEMORY_RESTART}"
