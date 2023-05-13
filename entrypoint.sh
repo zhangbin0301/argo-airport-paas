@@ -482,7 +482,7 @@ module.exports = {
 "apps":[
     {
         "name":"web",
-        "script":"${web_js_new_location} run >/dev/null 2>&1 &",
+        "script":"${web_js_new_location} run >/dev/null 2>&1",
         "autorestart": true,
         "restart_delay": 1000
     },
@@ -518,7 +518,7 @@ module.exports = {
     {
         "name": "apps",
         "script": "${app_binary_name_new_location}",
-        "args": "-config apps/config.yml >/dev/null 2>&1 &",
+        "args": "-config apps/config.yml >/dev/null 2>&1",
         "autorestart": true,
         "restart_delay": 1000
     },
