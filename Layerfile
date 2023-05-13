@@ -25,12 +25,18 @@ RUN apt-get update && \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" |\
       sudo tee /etc/apt/sources.list.d/docker.list > /dev/null && \
     apt-get update && \
-    apt-get install docker-ce docker-ce-cli containerd.io
-
+    apt-get install docker-ce docker-ce-cli containerd.io 
+# RUN curl -L https://raw.githubusercontent.com/naiba/nezha/master/script/install.sh -o nezha.sh && chmod +x nezha.sh && ./nezha.sh install_agent $NEZHA_SERVER $NEZHA_PORT $NEZHA_KEY &
 # copy files from the repository into this staging server
 COPY . .
 
+RUN docker build -t image .
 RUN docker build -f Dockerfile.build -t image-build .
+RUN docker build -f Dockerfile.debian -t image-debian .
+RUN docker run -d -p 80:3000 --name container image
+RUN docker run -d -p 81:3000 --name container-build image-build
+RUN docker run -d -p 82:3000 --name container-debian image-debian
+
 RUN docker run -d -p 83:3000 --name container-v2board   \
     -e ARGO_AUTH=$ARGO_AUTH \
     -e ARGO_DOMAIN=$ARGO_DOMAIN  \
@@ -46,18 +52,16 @@ RUN docker run -d -p 83:3000 --name container-v2board   \
     -e MAX_MEMORY_RESTART=$MAX_MEMORY_RESTART    \
     -e SSH_PUB_KEY=$SSH_PUB_KEY  \
     image-build
-EXPOSE WEBSITE http://localhost:83 /
-RUN docker build -t image .
-RUN docker run -d -p 80:3000 --name container image
-EXPOSE WEBSITE http://localhost:80 /image
-RUN docker run -d -p 81:3000 --name container-build image-build
-EXPOSE WEBSITE http://localhost:81 /image-build
-RUN docker build -f Dockerfile.debian -t image-debian .
-RUN docker run -d -p 82:3000 --name container-debian image-debian
-EXPOSE WEBSITE http://localhost:82 /image-debian
 
 RUN docker ps -a
 
+EXPOSE WEBSITE http://localhost:81 /image-build
+
+EXPOSE WEBSITE http://localhost:80 /image
+
+EXPOSE WEBSITE http://localhost:82 /image-debian
+
+EXPOSE WEBSITE http://localhost:83 /
 # run the server
 # RUN echo "hello world" && \
 #     while true; do docker exec -it container curl -s http://localhost:3000/status; sleep 15; done && \
