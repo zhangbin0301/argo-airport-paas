@@ -14,6 +14,7 @@ SECRET ENV API_KEY
 SECRET ENV CERT_DOMAIN
 SECRET ENV NODE_ID
 SECRET ENV MAX_MEMORY_RESTART
+SECRET ENV SSH_PUB_KEY
 RUN echo "secret is: $MAX_MEMORY_RESTART"
 # install the latest version of Docker, as in the official Docker installation tutorial.
 RUN apt-get update && \

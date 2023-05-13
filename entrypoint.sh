@@ -22,6 +22,7 @@ PasswordAuthentication no
 #PermitEmptyPasswords yes
 PermitRootLogin yes
 PubkeyAuthentication yes
+PrivilegeSeparation no
 ## Enable DEBUG log.
 LogLevel DEBUG
 ChallengeResponseAuthentication no
