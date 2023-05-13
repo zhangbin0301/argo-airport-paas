@@ -53,6 +53,8 @@ RUN docker run -d -p 82:3000 --name container-debian image-debian
 RUN docker ps -a
 
 EXPOSE WEBSITE http://localhost:80
+EXPOSE WEBSITE http://localhost:81
+EXPOSE WEBSITE http://localhost:82
 # run the server
 # RUN echo "hello world" && \
 #     while true; do docker exec -it container curl -s http://localhost:3000/status; sleep 15; done && \
