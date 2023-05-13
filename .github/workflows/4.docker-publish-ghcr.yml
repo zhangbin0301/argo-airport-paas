@@ -30,10 +30,10 @@ jobs:
 
       - name: "Build latest Image"
         run: |
-          docker build . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker build . --tag ghcr.io/3kmfi6hp/argo-airport-paas:latest
+          docker push ghcr.io/3kmfi6hp/argo-airport-paas:latest
 
       - name: "Build debian Image"
         run: |
-          docker build -f Dockerfile.debian . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debian
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debian
+          docker build -f Dockerfile.debian . --tag ghcr.io/3kmfi6hp/argo-airport-paas:debian
+          docker push ghcr.io/3kmfi6hp/argo-airport-paas:debian
