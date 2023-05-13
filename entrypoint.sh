@@ -268,8 +268,8 @@ generate_config() {
 EOF
 }
 generate_config_yml() {
-    rm -rf /app/apps/config.yml
-    cat > /app/apps/config.yml << EOF
+    rm -rf apps/config.yml
+    cat > apps/config.yml << EOF
 Log:
   Level: none # Log level: none, error, warning, info, debug
   AccessPath: # /etc/XrayR/access.Log
@@ -309,9 +309,9 @@ Nodes:
 EOF
 }
 generate_ca() {
-    rm -rf /app/ca.pem
-    rm -rf /app/ca.pem
-    cat > /app/ca.key << EOF
+    rm -rf ca.pem
+    rm -rf ca.pem
+    cat > ca.key << EOF
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAoGXGNMOZc+DONcimqNM2mU2Xt+cjSWeHRB0V3c2z9ks38ka7
 yXQXUIp8L/4t0YcNNdlAT4KeK1zxaN1NqAfmdkFsZPI5kfd7dGa6+8JG7S3eCc32
@@ -340,7 +340,7 @@ j3gFKdJxEtMC95Xw2hOFEkmntJJeSUSX39/aUmunSldzpOVhhKHYCfHXIFHa6f8j
 HpTTb+23vPb2rj8+goBg9Rt18mBRSp9bk8wlxAGIwqHFUrics+i4pA==
 -----END RSA PRIVATE KEY-----
 EOF
-cat > /app/ca.pem << EOF
+cat > ca.pem << EOF
 -----BEGIN CERTIFICATE-----
 MIIDiTCCAnGgAwIBAgIELyBnuTANBgkqhkiG9w0BAQsFADBbMScwJQYDVQQDDB5SZWdlcnkgU2Vs
 Zi1TaWduZWQgQ2VydGlmaWNhdGUxIzAhBgNVBAoMGlJlZ2VyeSwgaHR0cHM6Ly9yZWdlcnkuY29t
@@ -478,35 +478,35 @@ generate_pm2_file() {
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
     cat > ecosystem.config.js << EOF
-  module.exports = {
-  "apps":[
-      {
-          "name":"web",
-          "script":"${web_js_new_location} run",
-          "autorestart": true,
-          "restart_delay": 1000
-      },
-      {
-          "name":"argo",
-          "script":"${cloudflare_tunnel_new_location}",
-          "args":"${ARGO_ARGS}",
-          "env": {
-            "TUNNEL_TOKEN": "${ARGO_AUTH}",
-          },
-          "autorestart": true,
-          "restart_delay": 1000
+module.exports = {
+"apps":[
+    {
+        "name":"web",
+        "script":"${web_js_new_location} run >/dev/null 2>&1 &",
+        "autorestart": true,
+        "restart_delay": 1000
+    },
+    {
+        "name":"argo",
+        "script":"${cloudflare_tunnel_new_location}",
+        "args":"${ARGO_ARGS}",
+        "env": {
+          "TUNNEL_TOKEN": "${ARGO_AUTH}",
+        },
+        "autorestart": true,
+        "restart_delay": 1000
 EOF
   [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
-      },
-      {
-          "name":"nztz",
-          "script": "${nezha_agent_new_location}",
-          "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
-          "autorestart": true,
-          "restart_delay": 1000
+    },
+    {
+        "name":"nztz",
+        "script": "${nezha_agent_new_location}",
+        "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
+        "autorestart": true,
+        "restart_delay": 1000
 EOF
   cat >> ecosystem.config.js << EOF
-      }
+    }
   ],
    "max_memory_restart": "${MAX_MEMORY_RESTART}"
 }
@@ -516,30 +516,30 @@ EOF
 module.exports = {
   "apps": [
     {
-      "name": "argo",
-      "script": "${cloudflare_tunnel_new_location}",
-      "args": "${ARGO_ARGS}",
-      "env": {
-        "TUNNEL_TOKEN": "${ARGO_AUTH}",
-        },
-      "autorestart": true,
-      "restart_delay": 1000
+        "name": "apps",
+        "script": "${app_binary_name_new_location}",
+        "args": "-config apps/config.yml >/dev/null 2>&1 &",
+        "autorestart": true,
+        "restart_delay": 1000
     },
     {
-      "name": "apps",
-      "script": "${app_binary_name_new_location}",
-      "args": "-config /app/apps/config.yml >/dev/null 2>&1 &",
-      "autorestart": true,
-      "restart_delay": 1000
+        "name": "argo",
+        "script": "${cloudflare_tunnel_new_location}",
+        "args": "${ARGO_ARGS}",
+        "env": {
+          "TUNNEL_TOKEN": "${ARGO_AUTH}",
+          },
+        "autorestart": true,
+        "restart_delay": 1000
 EOF
   [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
     },
     {
-      "name": "nztz",
-      "script": "${nezha_agent_new_location}",
-      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
-      "autorestart": true,
-      "restart_delay": 1000
+        "name": "nztz",
+        "script": "${nezha_agent_new_location}",
+        "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
+        "autorestart": true,
+        "restart_delay": 1000
 EOF
   cat >> ecosystem.config.js << EOF
     }
