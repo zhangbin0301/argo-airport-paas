@@ -1,0 +1,39 @@
+name: Deploy ALL Images to GHCR
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+on:
+# cron job every 7 days at 05:24
+  schedule:
+    - cron: '24 5 * * */7'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  push-all-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout GitHub Action"
+        uses: actions/checkout@main
+
+      - name: "Login to GitHub Container Registry"
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: "Build latest Image"
+        run: |
+          docker build . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: "Build debian Image"
+        run: |
+          docker build -f Dockerfile.debian . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debian
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debian
