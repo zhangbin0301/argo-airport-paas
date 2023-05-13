@@ -10,8 +10,8 @@ on:
   # cron job every 7 days at 05:24
   schedule:
     - cron: "24 5 */7 * *"
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
   workflow_dispatch:
 
 jobs:
