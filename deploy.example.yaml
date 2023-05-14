@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argo-airport-paas
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: argo-airport-paas
+  template:
+    metadata:
+      labels:
+        app: argo-airport-paas
+  spec:
+    containers:
+      - name: argo-airport-paas
+        image: ghcr.io/3kmfi6hp/argo-airport-paas:main
+        ports:
+          - containerPort: 3000
+        envFrom:
+          - configMapRef:
+              name: env-config
+        readinessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 3
+    imagePullSecrets:
+      - name: ghcr
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+data:
+  .env: |
+    $(cat .env)
