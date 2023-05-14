@@ -4,7 +4,7 @@ services:
     build: .
     # image: ghcr.io/3kmfi6hp/argo-airport-paas:main
     ports:
-      - "8080:3000"
+      - "80:3000"
     # volumes:
     #   - ./entrypoint.sh:/app/entrypoint.sh:ro
     #   - ./server.js:/app/server.js:ro

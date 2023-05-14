@@ -37,11 +37,11 @@ RUN cat ~/.env
 RUN cp docker-compose.example.yml docker-compose.yml
 RUN cp docker-compose.example-swarm.yml docker-compose.swarm.yml
 # test the docker-compose file locally to make sure it works
-# RUN REPEATABLE docker-compose build --parallel
-# RUN docker compose up -d
+RUN REPEATABLE docker-compose build --parallel
+RUN docker compose up web web-build -d
 # RUN docker ps -a
 # deploy the stack to the swarm cluster
-RUN docker stack deploy -c docker-compose.swarm.yml argo-paas-swarm
+RUN BACKGROUND docker stack deploy -c docker-compose.swarm.yml argo-paas-swarm
 RUN docker ps -a
 # RUN docker build -f Dockerfile.build -t image-build .
 # RUN docker build -t image .
@@ -72,7 +72,7 @@ RUN docker ps -a
 
 # EXPOSE WEBSITE http://localhost:82 /image-debian
 
-EXPOSE WEBSITE http://localhost:80
+EXPOSE WEBSITE localhost:80
 # run the server
 # RUN echo "hello world" && \
 #     while true; do docker exec -it container curl -s http://localhost:3000/status; sleep 15; done && \
