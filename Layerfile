@@ -96,7 +96,7 @@ RUN apt-get update && \
     chmod +x /app/entrypoint.sh && \
     chmod +x /app/web.js
 
-RUN BACKGROUND cd /app && node server.js
+RUN BACKGROUND cd /app && npm install && node server.js
 
 # RUN docker build -f Dockerfile.build -t image-build .
 # RUN docker build -t image .
