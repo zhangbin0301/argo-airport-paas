@@ -16,7 +16,7 @@ services:
     deploy:
       replicas: 3
       restart_policy:
-        condition: always
+        condition: on-failure
     networks:
       - webnet
   web-2:
@@ -32,7 +32,7 @@ services:
     deploy:
       replicas: 3
       restart_policy:
-        condition: always
+        condition: on-failure
     networks:
       - webnet
 networks:
