@@ -474,7 +474,7 @@ generate_pm2_file() {
     chmod +x "$web_js_new_location"
     chmod +x "$cloudflare_tunnel_new_location"
     
-    NEZHA_PORT_TLS=${NEZHA_PORT:=80}
+    # NEZHA_PORT_TLS=${NEZHA_PORT:=80}
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
     cat > ecosystem.config.js << EOF
