@@ -66,8 +66,8 @@ COPY server.js /app/server.js
 COPY package.json /app/package.json
 COPY entrypoint.sh /app/entrypoint.sh
 
-ENV TZ="Asia/Shanghai"
-ENV NODE_ENV="production"
+# ENV TZ="Asia/Shanghai"
+# ENV NODE_ENV="production"
 
 # Install dependencies
 RUN apt-get update && \
