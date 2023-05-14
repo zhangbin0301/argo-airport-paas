@@ -19,7 +19,6 @@ spec:
           image: ghcr.io/3kmfi6hp/argo-airport-paas:main
           ports:
             - containerPort: 3000
-              hostPort: 3000
               protocol: TCP
           envFrom:
             - configMapRef:
@@ -35,7 +34,7 @@ spec:
             tcpSocket:
               port: 3000
             initialDelaySeconds: 15
-            periodSeconds: 5  
+            periodSeconds: 5
           readinessProbe:
             tcpSocket:
               port: 3000
@@ -49,20 +48,9 @@ metadata:
   name: argo-airport-paas-lb
 spec:
   type: LoadBalancer
-  loadBalancerIP: 1.2.3.4  # 固定 IP 
   ports:
   - port: 80
     targetPort: 3000
     protocol: TCP
   selector:
     app: argo-airport-paas
---- 
-apiVersion: v1
-kind: Endpoints 
-metadata:
-  name: argo-airport-paas-lb
-subsets:
-  - addresses:
-      - ip: 1.2.3.4     # 固定 IP 
-    ports:
-      - port: 80
