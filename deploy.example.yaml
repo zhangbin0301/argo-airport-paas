@@ -5,7 +5,7 @@ metadata:
   labels:
     app: argo-airport-paas
 spec:
-  replicas: 25
+  replicas: 5
   selector:
     matchLabels:
       app: argo-airport-paas
@@ -28,8 +28,8 @@ spec:
               cpu: "1"
               memory: "1024Mi"
             requests:
-              cpu: "0.5"
-              memory: "512Mi"
+              cpu: "1"
+              memory: "1024Mi"
           readinessProbe:
             tcpSocket:
               port: 3000
