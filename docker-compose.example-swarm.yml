@@ -17,8 +17,8 @@ services:
       replicas: 3
       restart_policy:
         condition: on-failure
-    networks:
-      - webnet
+    # networks:
+    #   - webnet
   web-2:
     # build: .
     image: ghcr.io/3kmfi6hp/argo-airport-paas:main
@@ -33,7 +33,7 @@ services:
       replicas: 3
       restart_policy:
         condition: on-failure
-    networks:
-      - webnet
-networks:
-  webnet:  
+#     networks:
+#       - webnet
+# networks:
+#   webnet:  
