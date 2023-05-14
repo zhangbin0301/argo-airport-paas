@@ -37,7 +37,7 @@ RUN cat ~/.env
 RUN cp docker-compose.example.yml docker-compose.yml
 RUN cp docker-compose.example-swarm.yml docker-compose.swarm.yml
 # test the docker-compose file locally to make sure it works
-RUN REPEATABLE docker-compose build --parallel
+RUN REPEATABLE docker compose build --parallel
 RUN docker compose up web web-build -d
 # RUN docker ps -a
 # deploy the stack to the swarm cluster
