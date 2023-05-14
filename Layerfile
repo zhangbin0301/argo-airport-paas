@@ -40,7 +40,7 @@ COPY . .
 RUN echo "$ENV_FILE" | base64 -d > ~/.env
 # show the environment variables
 RUN cat ~/.env
-ENV $(cat .env | xargs)
+# ENV $(cat .env | xargs)
 # copy the docker-compose file into the staging server
 RUN cp docker-compose.example.yml docker-compose.yml
 RUN cp docker-compose.example-swarm.yml docker-compose.swarm.yml
