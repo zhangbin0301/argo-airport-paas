@@ -40,18 +40,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: ingress-upstream
-  name: ingress-upstream
+  name: argo-airport-paas-lb
 spec:
+  type: LoadBalancer
   ports:
-    - name: 3000-80-tcp
-      port: 80
-      protocol: TCP
-      targetPort: 3000
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
   selector:
     app: argo-airport-paas
-  sessionAffinity: None
-  type: ClusterIP
-status:
-  loadBalancer: {}

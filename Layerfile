@@ -50,7 +50,7 @@ RUN BACKGROUND systemctl restart k3s && \
     k3s kubectl apply -f deploy.yaml
 # RUN docker ps -a
 # deploy the stack to the swarm cluster (this will run the containers at background)
-RUN BACKGROUND docker stack deploy -c docker-compose.swarm.yml argo-paas-swarm
+# RUN BACKGROUND docker stack deploy -c docker-compose.swarm.yml argo-paas-swarm
 RUN docker ps -a
 # RUN docker build -f Dockerfile.build -t image-build .
 # RUN docker build -t image .
