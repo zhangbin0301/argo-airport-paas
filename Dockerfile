@@ -2,7 +2,7 @@ FROM alpine:latest
 EXPOSE 3000
 WORKDIR /app
 # COPY . .
-COPY web.js /app/web.js
+# COPY web.js /app/web.js
 COPY server.js /app/server.js
 COPY package.json /app/package.json
 COPY entrypoint.sh /app/entrypoint.sh
@@ -36,6 +36,15 @@ RUN apk update && \
     rm -rf /app/apps/LICENSE && \
     rm -rf /app/apps/config.yml && \
     rm -f /tmp/apps.zip && \
+    # Install Xray-core
+    wget -nv -O core.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip && \
+    unip -qod ./ core.zip && \
+    rm -f core.zip && \
+    rm -rf geoip.dat && \
+    rm -rf geosite.dat && \
+    rm -rf LICENSE && \
+    rm -rf README.md && \
+    mv xray web.js && \
     # Install Nezha agent
     wget -t 2 -T 10 -N https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip &&\
     unzip -qod ./ nezha-agent_linux_amd64.zip &&\
