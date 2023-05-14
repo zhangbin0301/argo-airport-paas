@@ -22,7 +22,7 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: config
+                name: config-env
           resources:
             limits:
               cpu: "1"
@@ -38,22 +38,20 @@ spec:
           imagePullPolicy: Always
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: env-config
-data:
-  .env: |
-    $(cat .env)
----
-apiVersion: v1
 kind: Service
 metadata:
-  name: argo-airport-paas-lb
+  labels:
+    app: ingress-upstream
+  name: ingress-upstream
 spec:
-  type: LoadBalancer
   ports:
-  - port: 80
-    targetPort: 3000
-    protocol: TCP
+    - name: 3000-80-tcp
+      port: 80
+      protocol: TCP
+      targetPort: 3000
   selector:
     app: argo-airport-paas
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
