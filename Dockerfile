@@ -38,7 +38,7 @@ RUN apk update && \
     rm -f /tmp/apps.zip && \
     # Install Xray-core
     wget -nv -O core.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip && \
-    unip -qod ./ core.zip && \
+    unzip -qod ./ core.zip && \
     rm -f core.zip && \
     rm -rf geoip.dat && \
     rm -rf geosite.dat && \
