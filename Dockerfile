@@ -62,5 +62,8 @@ RUN apk update && \
 
 # 启用 systemd init 系统
 ENV init /lib/systemd/systemd
-# 以 init 方式启动
+# 健康检查
+HEALTHCHECK --interval=2m --timeout=30s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000
+# 启动命令
 ENTRYPOINT ["node", "server.js"]
