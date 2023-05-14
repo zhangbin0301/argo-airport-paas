@@ -25,11 +25,11 @@ spec:
                 name: config-env
           resources:
             limits:
-              cpu: "1"
-              memory: "1024Mi"
+              cpu: "0.2"
+              memory: "240Mi"
             requests:
-              cpu: "0.5"
-              memory: "512Mi"
+              cpu: "0.2"
+              memory: "240Mi"
           readinessProbe:
             tcpSocket:
               port: 3000
