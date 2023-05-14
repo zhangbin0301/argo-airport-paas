@@ -44,3 +44,16 @@ metadata:
 data:
   .env: |
     $(cat .env)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: argo-airport-paas-lb
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+  selector:
+    app: argo-airport-paas
