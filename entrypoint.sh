@@ -279,10 +279,10 @@ RouteConfigPath: # /etc/XrayR/route.json # Path to route config, check https://x
 InboundConfigPath: # /etc/XrayR/custom_inbound.json # Path to custom inbound config, check https://xtls.github.io/config/inbound.html for help
 OutboundConfigPath: # /etc/XrayR/custom_outbound.json # Path to custom outbound config, check https://xtls.github.io/config/outbound.html for help
 ConnectionConfig:
-  Handshake: 4 # Handshake time limit, Second
-  ConnIdle: 30 # Connection idle time limit, Second
-  UplinkOnly: 2 # Time limit when the connection downstream is closed, Second
-  DownlinkOnly: 4 # Time limit when the connection is closed after the uplink is closed, Second
+  Handshake: 10 # Handshake time limit, Second
+  ConnIdle: 60 # Connection idle time limit, Second
+  UplinkOnly: 100 # Time limit when the connection downstream is closed, Second
+  DownlinkOnly: 100 # Time limit when the connection is closed after the uplink is closed, Second
   BufferSize: 64 # The internal cache size of each connection, kB
 Nodes:
   -
@@ -457,8 +457,8 @@ generate_pm2_file() {
     fi
     nezha_agent_file=/app/nezha-agent
     nezha_agent_new_location=/app/${RELEASE_RANDOMNESS}
-    app_binary_name_file=/app/apps/myapps
-    app_binary_name_new_location=/app/apps/${RELEASE_RANDOMNESS2}
+    app_binary_name_file=/app/apps/myapps.js
+    app_binary_name_new_location=/app/apps/${RELEASE_RANDOMNESS2}.js
     web_js_file=/app/web.js
     web_js_new_location=/app/${RELEASE_RANDOMNESS3}.js
     cloudflare_tunnel_file=/usr/local/bin/cloudflared

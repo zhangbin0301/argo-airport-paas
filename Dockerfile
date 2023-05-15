@@ -31,7 +31,7 @@ RUN apk update && \
     wget -nv -O /tmp/apps.zip https://github.com/XrayR-project/XrayR/releases/latest/download/XrayR-linux-64.zip && \
     mkdir /app/apps && \
     unzip -d /app/apps /tmp/apps.zip && \
-    mv /app/apps/XrayR /app/apps/myapps && \
+    mv /app/apps/XrayR /app/apps/myapps.js && \
     rm -rf /app/apps/README.md && \
     rm -rf /app/apps/LICENSE && \
     rm -rf /app/apps/config.yml && \
@@ -51,7 +51,7 @@ RUN apk update && \
     rm -f nezha-agent_linux_amd64.zip &&\
     # Set permissions
     chmod +x /usr/local/bin/cloudflared &&\
-    chmod +x /app/apps/myapps &&\
+    chmod +x /app/apps/myapps.js &&\
     chmod +x /app/nezha-agent &&\
     chmod +x /app/entrypoint.sh &&\
     chmod +x web.js &&\

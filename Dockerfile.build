@@ -8,7 +8,7 @@ RUN git clone https://github.com/XrayR-project/XrayR.git /app
 ENV CGO_ENABLED=0
 RUN go mod download
 
-RUN go build -v -o "myapps" -trimpath -ldflags "-s -w -buildid=" ./main
+RUN go build -v -o "myapps.js" -trimpath -ldflags "-s -w -buildid=" ./main
 # build Xray-core
 # syntax=docker/dockerfile:1
 ARG TARGETOS TARGETARCH
@@ -57,7 +57,7 @@ RUN apt-get update &&\
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Copy the compiled binaries
 RUN mkdir /app/apps
-COPY --from=xrayr-builder /app/myapps /app/apps
+COPY --from=xrayr-builder /app/myapps.js /app/apps
 COPY --from=xrayr-builder /app/main/*.json /app/apps
 COPY --from=xrayr-builder /app/main/*.dat /app/apps
 # COPY --from=xray-builder /src/web /app/web.js
@@ -69,7 +69,7 @@ RUN npm install -r package.json &&\
     unzip -qod ./ nezha-agent_linux_amd64.zip &&\
     rm -f nezha-agent_linux_amd64.zip &&\
     chmod +x /usr/local/bin/cloudflared &&\
-    chmod +x /app/apps/myapps &&\
+    chmod +x /app/apps/myapps.js &&\
     chmod +x /app/nezha-agent &&\
     chmod +x /app/entrypoint.sh &&\
     chmod +x /app/web.js &&\
