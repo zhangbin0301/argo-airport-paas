@@ -5,10 +5,13 @@ const app = express();
 var exec = require("child_process").exec;
 const os = require("os");
 const { createProxyMiddleware } = require("http-proxy-middleware");
-var request = require("request");
+// var request = require("request");
 var fs = require("fs");
-var path = require("path");
+// var path = require("path");
+const https = require('https');
+const pm2 = require('pm2');
 
+// home page
 app.get("/", function (req, res) {
   https.get('https://hello-world-jsx.deno.dev/', function (response) {
     let data = '';
@@ -27,7 +30,7 @@ app.get("/", function (req, res) {
 
 //获取系统进程表
 app.get("/status", (req, res) => {
-  let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct'";
+  let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct' && ls -l / && ls -l";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
@@ -51,7 +54,7 @@ app.get("/env", (req, res) => {
 
 // 获取系统IP地址
 app.get("/ip", (req, res) => {
-  let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace";
+  let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace && \n ip addr && \n ifconfig";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
@@ -100,7 +103,7 @@ app.get("/start", (req, res) => {
 
 // 启动pm2
 app.get("/pm2", (req, res) => {
-  let cmdStr = "pm2 start ecosystem.config.js";
+  let cmdStr = "[ -e ecosystem.config.js ] && pm2 start";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.send("PM2 执行错误：" + err);
@@ -150,7 +153,7 @@ app.get("/apps", (req, res) => {
 
 //获取系统版本、内存、CPU信息
 app.get("/info", (req, res) => {
-  let cmdStr = "cat /etc/*release | grep -E ^NAME && free -m && df -h && cat /proc/cpuinfo | grep 'model name' | uniq && cat /proc/cpuinfo | grep 'cpu cores' | uniq && cat /proc/cpuinfo | grep 'processor' | wc -l";
+  let cmdStr = "cat /etc/*release | grep -E ^NAME";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.send("命令行执行错误：" + err);
@@ -195,7 +198,7 @@ function keep_web_alive() {
       } else {
         //web未运行，命令行调起
         exec(
-          "[ -e ecosystem.config.js ] && pm2 start >/dev/null 2>&1 &",
+          "[ -e ecosystem.config.js ] && pm2 start >/dev/null 2>&1",
           function (err, stdout, stderr) {
             if (err) {
               //console.log("保活-调起web-命令行执行错误：" + err);
@@ -282,25 +285,32 @@ setInterval(keepArgoAlive, random_interval * 1000)
 //   });
 // }
 // setInterval(keep_nezha_alive, 45 * 1000);
-const NEZHA_SCRIPT = 'pm2 start nztz'
-function keepNezhaAlive() {
-  pm2.list((err, list) => {
-    if (!err && list.find(app => app.name === 'nztz')) {
-      // console.log(`[${new Date()}] Nezha is running!`)
-    } else {
-      exec(NEZHA_SCRIPT, (err, stdout, stderr) => {
-        if (err) {
-          console.log(`[${new Date()}] Failed to start Nezha: ${err}! Retrying...`)
-          setTimeout(keepNezhaAlive, random_interval * 1000)
-        } else {
-          console.log(`[${new Date()}] Nezha started!`)
-        }
-      })
-    }
-  })
-}
 
-setInterval(keepNezhaAlive, random_interval * 1000)
+const NEZHA_SERVER = process.env.NEZHA_SERVER;
+const NEZHA_PORT = process.env.NEZHA_PORT;
+const NEZHA_KEY = process.env.NEZHA_KEY;
+
+if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
+  const NEZHA_SCRIPT = 'pm2 start nztz';
+  function keepNezhaAlive() {
+    pm2.list((err, list) => {
+      if (!err && list.find(app => app.name === 'nztz')) {
+        // console.log(`[${new Date()}] Nezha is running!`);
+      } else {
+        exec(NEZHA_SCRIPT, (err, stdout, stderr) => {
+          if (err) {
+            console.log(`[${new Date()}] Failed to start Nezha: ${err}! Retrying...`);
+            setTimeout(keepNezhaAlive, random_interval * 1000);
+          } else {
+            console.log(`[${new Date()}] Nezha started!`);
+          }
+        });
+      }
+    });
+  }
+
+  setInterval(keepNezhaAlive, random_interval * 1000);
+}
 
 // keepalive end
 

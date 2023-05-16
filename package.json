@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Express Hello World on Render",
   "main": "server.js",
-  "repository": "",
+  "repository": "https://github.com/express/express",
   "author": "Render",
   "license": "MIT",
-  "private": false,
+  "private": true,
   "scripts": {
     "start": "node server.js"
   },

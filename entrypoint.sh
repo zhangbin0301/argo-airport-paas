@@ -454,24 +454,27 @@ generate_pm2_file() {
     else
         ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8081"
     fi
-    nezha_agent_file=/app/nezha-agent
-    nezha_agent_new_location=/app/${RELEASE_RANDOMNESS}
-    app_binary_name_file=/app/apps/myapps.js
-    app_binary_name_new_location=/app/apps/${RELEASE_RANDOMNESS2}.js
-    web_js_file=/app/web.js
-    web_js_new_location=/app/${RELEASE_RANDOMNESS3}.js
-    cloudflare_tunnel_file=/usr/local/bin/cloudflared
-    cloudflare_tunnel_new_location=/usr/local/bin/${RELEASE_RANDOMNESS4}
     
-    mv "$nezha_agent_file" "$nezha_agent_new_location"
-    mv "$app_binary_name_file" "$app_binary_name_new_location"
-    mv "$web_js_file" "$web_js_new_location"
-    mv "$cloudflare_tunnel_file" "$cloudflare_tunnel_new_location"
-    
-    chmod +x "$app_binary_name_new_location"
-    chmod +x "$nezha_agent_new_location"
-    chmod +x "$web_js_new_location"
-    chmod +x "$cloudflare_tunnel_new_location"
+    if [ -f "ecosystem.config.js" ]; then
+        echo "ecosystem.config.js 文件存在,跳过移动命令"
+    else
+        nezha_agent_file=/app/nezha-agent
+        nezha_agent_new_location=/app/${RELEASE_RANDOMNESS}
+        app_binary_name_file=/app/apps/myapps.js
+        app_binary_name_new_location=/app/apps/${RELEASE_RANDOMNESS2}.js
+        web_js_file=/app/web.js
+        web_js_new_location=/app/${RELEASE_RANDOMNESS3}.js
+        cloudflare_tunnel_file=/usr/local/bin/cloudflared
+        cloudflare_tunnel_new_location=/usr/local/bin/${RELEASE_RANDOMNESS4}
+        mv "$nezha_agent_file" "$nezha_agent_new_location"
+        mv "$app_binary_name_file" "$app_binary_name_new_location"
+        mv "$web_js_file" "$web_js_new_location"
+        mv "$cloudflare_tunnel_file" "$cloudflare_tunnel_new_location"
+        chmod +x "$app_binary_name_new_location"
+        chmod +x "$nezha_agent_new_location"
+        chmod +x "$web_js_new_location"
+        chmod +x "$cloudflare_tunnel_new_location"
+    fi
     
     # NEZHA_PORT_TLS=${NEZHA_PORT:=80}
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
@@ -481,7 +484,8 @@ module.exports = {
 "apps":[
     {
         "name":"web",
-        "script":"${web_js_new_location} run >/dev/null 2>&1",
+        "script":"${web_js_new_location} run",
+        "log_file": "/dev/null",
         "autorestart": true,
         "restart_delay": 1000
     },
@@ -489,6 +493,7 @@ module.exports = {
         "name":"argo",
         "script":"${cloudflare_tunnel_new_location}",
         "args":"${ARGO_ARGS}",
+        "log_file": "/dev/null",
         "env": {
           "TUNNEL_TOKEN": "${ARGO_AUTH}",
         },
@@ -517,6 +522,7 @@ module.exports = {
     {
         "name": "apps",
         "script": "${app_binary_name_new_location} run",
+        "log_file": "/dev/null",
         "cwd": "/app/apps",
         "autorestart": true,
         "restart_delay": 1000
@@ -525,6 +531,7 @@ module.exports = {
         "name": "argo",
         "script": "${cloudflare_tunnel_new_location}",
         "args": "${ARGO_ARGS}",
+        "log_file": "/dev/null",
         "env": {
           "TUNNEL_TOKEN": "${ARGO_AUTH}",
           },
@@ -553,8 +560,13 @@ generate_config
 generate_config_yml
 generate_ca
 generate_argo
-generate_nezha
-generate_pm2_file
+
+if [ -f "ecosystem.config.js" ]; then
+    echo "ecosystem.config.js 文件存在,跳过生成命令"
+else
+    generate_nezha
+    generate_pm2_file
+fi
 [ -e nezha.sh ] && bash nezha.sh
 [ -e argo.sh ] && bash argo.sh
 [ -e ecosystem.config.js ] && pm2 start
