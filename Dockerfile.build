@@ -45,7 +45,7 @@ RUN git clone https://github.com/cloudflare/cloudflared.git /go/src/github.com/c
 RUN make cloudflared
 
 # Final image
-FROM node:buster-slim
+FROM node:slim
 EXPOSE 3000
 WORKDIR /app
 COPY . .

@@ -1,4 +1,4 @@
-FROM node:buster-slim
+FROM node:slim
 EXPOSE 3000
 WORKDIR /app
 # COPY . .
