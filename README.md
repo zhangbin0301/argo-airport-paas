@@ -4,7 +4,7 @@
 
 1. 加入了 [v2board](https://github.com/v2board/v2board) 的支持，可以直接使用 v2board 的 API 来管理节点。
 2. 加入了随机文件名的支持，可以防止被封号。
-3. 简化部署 For deploy: [https://github.com/3Kmfi6HP/paas-deploy](https://github.com/3Kmfi6HP/paas-deploy) 不需要自己编译镜像，直接使用已经编译好的镜像，缩短 paas deploy 的时间。
+3. 使用K8S部署 For deploy: [https://github.com/3Kmfi6HP/paas-deploy](https://github.com/3Kmfi6HP/paas-deploy) 不需要自己编译镜像，直接使用已经编译好的镜像，缩短 paas deploy 的时间。
 
 ## 环境变量说明
 
