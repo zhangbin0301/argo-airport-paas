@@ -62,7 +62,7 @@ ssh-keygen -t rsa -b 4096 -C "" -f id_rsa
 
 ## 查看容器信息
 
-打开浏览器访问 `https://argo.example.com/list` 即可查看节点信息
+打开浏览器访问 `https://argo.example.com/list` 即可查看节点信息 使用v2board 这个无效
 **注意** 请将 argo.example.com 替换为你的容器域名，节点信息里的连接域名已经设置为优选 IP，不需要再另外做修改。
 
 ### 更多信息查看
@@ -75,3 +75,6 @@ ssh-keygen -t rsa -b 4096 -C "" -f id_rsa
 
 (如果你的容器内服务是监听 3000 端口，那么这里就会显示 3000)， 也可以通过环境变量 PORT 来设置监听端口，这里还会显示容器内的网络连接信息，可以用来排查网络问题。
 其他信息可以省略...
+## K8S 部署
+文件示例
+[https://github.com/3Kmfi6HP/argo-airport-paas/blob/main/deploy.example.yaml](https://github.com/3Kmfi6HP/argo-airport-paas/blob/main/deploy.example.yaml)
