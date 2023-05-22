@@ -6,6 +6,16 @@
 2. 加入了随机文件名的支持，可以防止被封号。
 3. 使用K8S部署 For deploy: [https://github.com/3Kmfi6HP/paas-deploy](https://github.com/3Kmfi6HP/paas-deploy) 不需要自己编译镜像，直接使用已经编译好的镜像，缩短 paas deploy 的时间。
 
+## 部署方法
+
+1. 新建一个仓库 创建一个名为 `Dockerfile` 的文件 内容如下 然后到paas平台部署创建的仓库
+```Dockerfile
+FROM ghcr.io/3kmfi6hp/argo-airport-paas:main
+```
+2. fork 这个仓库部署 [https://github.com/3Kmfi6HP/paas-deploy](https://github.com/3Kmfi6HP/paas-deploy)
+
+4. 直接使用本仓库部署 时间可能比较长
+
 ## 环境变量说明
 
 Nezha 的端口设置为 443 就会自动加 --tls
