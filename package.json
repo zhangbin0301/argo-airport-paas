@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "start": "npm run startpm2",
-    "startpm2": "pm2 start server.js --no-daemon --autorestart --name express-hello-world",
+    "startpm2": "pm2 start server.js --no-daemon --name express-hello-world",
     "stop": "pm2 stop server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
