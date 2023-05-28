@@ -259,7 +259,7 @@ function keepArgoAlive() {
   })
 }
 
-setInterval(keepArgoAlive, random_interval * 1000)
+setInterval(keepArgoAlive, random_interval * 5000)
 
 //哪吒保活
 // function keep_nezha_alive() {
@@ -309,7 +309,7 @@ if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
     });
   }
 
-  setInterval(keepNezhaAlive, random_interval * 1000);
+  setInterval(keepNezhaAlive, random_interval * 5000);
 }
 
 // keepalive end
