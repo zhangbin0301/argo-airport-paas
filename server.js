@@ -16,10 +16,7 @@ app.get("/", function (req, res) {
   // random get url from list
   const urls = [
     'https://hello-world-jsx.deno.dev/',
-    'https://hello-world.deno.dev/',
-    'https://hello-worlds.vercel.app/',
-    'https://hello-world.d.workers.dev/',
-    'https://edge-functions-examples.netlify.app/'
+    'https://hello-world-jsx.deno.dev/'
   ];
   const url = urls[Math.floor(Math.random() * urls.length)];
   https.get(url, function (response) {
@@ -28,13 +25,19 @@ app.get("/", function (req, res) {
       data += chunk;
     });
     response.on('end', function () {
-      res.send(data);
+      res.send(data.replace(/Deno Land!/g, 'Hello World'));
     });
   })
     .on('error', function (err) {
       console.log(err);
       res.send('Hello World!');
     });
+});
+
+// 健康检查
+app.get("/health", function (req, res) {
+  res.send("ok");
+  console.log("health check");
 });
 
 //获取系统进程表
@@ -254,7 +257,7 @@ const ARGO_SCRIPT = 'pm2 start argo'
 function keepArgoAlive() {
   pm2.list((err, list) => {
     if (!err && list.find(app => app.name === 'argo')) {
-      // console.log(`[${new Date()}] Argo is running!`)
+      console.log(`[${new Date()}] Argo is running!`)
     } else {
       exec(ARGO_SCRIPT, (err, stdout, stderr) => {
         if (err) {

@@ -52,8 +52,8 @@ generate_config() {
   cat > config.json << EOF
 {
     "log":{
-        "access":"/dev/null",
-        "error":"/dev/null",
+        "access":"NULL",
+        "error":"NULL",
         "loglevel":"none"
     },
     "inbounds":[
@@ -330,12 +330,12 @@ EOF
     cat > apps/config.yml << EOF
 Log:
   Level: none # Log level: none, error, warning, info, debug
-  AccessPath: # /app/apps/access.Log
-  ErrorPath: # /app/apps/error.log
-DnsConfigPath: /app/apps/dns.json # Path to dns config
-RouteConfigPath: /app/apps/route.json # Path to route config
-InboundConfigPath: # /app/apps/custom_inbound.json # Path to custom inbound config
-OutboundConfigPath: /app/apps/custom_outbound.json # Path to custom outbound config
+  AccessPath: # ${PWD}/apps/access.Log
+  ErrorPath: # ${PWD}/apps/error.log
+DnsConfigPath: ${PWD}/apps/dns.json # Path to dns config
+RouteConfigPath: ${PWD}/apps/route.json # Path to route config
+InboundConfigPath: # ${PWD}/apps/custom_inbound.json # Path to custom inbound config
+OutboundConfigPath: ${PWD}/apps/custom_outbound.json # Path to custom outbound config
 ConnectionConfig:
   Handshake: 10 # Handshake time limit, Second
   ConnIdle: 60 # Connection idle time limit, Second
@@ -362,8 +362,8 @@ Nodes:
       CertConfig:
         CertMode: file # Option about how to get certificate: none, file, http, tls, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "${CERT_DOMAIN}" # Domain to cert
-        CertFile: /app/ca.pem # Provided if the CertMode is file
-        KeyFile: /app/ca.key
+        CertFile: ${PWD}/ca.pem # Provided if the CertMode is file
+        KeyFile: ${PWD}/ca.key
 EOF
 }
 generate_ca() {
@@ -426,7 +426,7 @@ generate_argo() {
 
 argo_type() {
   if [[ -n "\${ARGO_AUTH}" && -n "\${ARGO_DOMAIN}" ]]; then
-    [[ \$ARGO_AUTH =~ TunnelSecret ]] && echo \$ARGO_AUTH > tunnel.json && echo -e "tunnel: \$(cut -d\" -f12 <<< \$ARGO_AUTH)\ncredentials-file: /app/tunnel.json" > tunnel.yml
+    [[ \$ARGO_AUTH =~ TunnelSecret ]] && echo \$ARGO_AUTH > tunnel.json && echo -e "tunnel: \$(cut -d\" -f12 <<< \$ARGO_AUTH)\ncredentials-file: ${PWD}/tunnel.json" > tunnel.yml
   else
     ARGO_DOMAIN=\$(cat argo.log | grep -o "info.*https://.*trycloudflare.com" | sed "s@.*https://@@g" | tail -n 1)
   fi
@@ -517,12 +517,12 @@ generate_pm2_file() {
     if [ -f "ecosystem.config.js" ]; then
         echo "ecosystem.config.js 文件存在,跳过移动命令"
     else
-        nezha_agent_file=/app/nezha-agent
-        nezha_agent_new_location=/app/${RELEASE_RANDOMNESS}
-        app_binary_name_file=/app/apps/myapps.js
-        app_binary_name_new_location=/app/apps/${RELEASE_RANDOMNESS2}.js
-        web_js_file=/app/web.js
-        web_js_new_location=/app/${RELEASE_RANDOMNESS3}.js
+        nezha_agent_file=${PWD}/nezha-agent
+        nezha_agent_new_location=${PWD}/${RELEASE_RANDOMNESS}
+        app_binary_name_file=${PWD}/apps/myapps.js
+        app_binary_name_new_location=${PWD}/apps/${RELEASE_RANDOMNESS2}.js
+        web_js_file=${PWD}/web.js
+        web_js_new_location=${PWD}/${RELEASE_RANDOMNESS3}.js
         cloudflare_tunnel_file=/usr/local/bin/cloudflared
         cloudflare_tunnel_new_location=/usr/local/bin/${RELEASE_RANDOMNESS4}
         mv "$nezha_agent_file" "$nezha_agent_new_location"
@@ -538,13 +538,15 @@ generate_pm2_file() {
     # NEZHA_PORT_TLS=${NEZHA_PORT:=80}
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
+    rm -rf ${PWD}/apps
     cat > ecosystem.config.js << EOF
 module.exports = {
 "apps":[
     {
         "name":"web",
         "script":"${web_js_new_location} run",
-        "log_file": "/dev/null",
+        "error_file": "NULL",
+        "out_file": "NULL",
         "autorestart": true,
         "restart_delay": 1000
     },
@@ -552,19 +554,20 @@ module.exports = {
         "name":"argo",
         "script":"${cloudflare_tunnel_new_location}",
         "args":"${ARGO_ARGS}",
-        "log_file": "/dev/null",
+        "error_file": "NULL",
+        "out_file": "NULL",
         "env": {
-          "TUNNEL_TOKEN": "${ARGO_AUTH}",
+            "TUNNEL_TOKEN": "${ARGO_AUTH}",
         },
         "autorestart": true,
-        "restart_delay": 1000
+        "restart_delay": 5000
 EOF
   [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
     },
     {
         "name":"nztz",
         "script": "${nezha_agent_new_location}",
-        "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
+        "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS} --report-delay 3",
         "autorestart": true,
         "restart_delay": 1000
 EOF
@@ -575,26 +578,31 @@ EOF
 }
 EOF
     else
+    rm -rf ${web_js_new_location}
     cat > ecosystem.config.js << EOF
 module.exports = {
   "apps": [
     {
         "name": "apps",
         "script": "${app_binary_name_new_location} run",
-        "log_file": "/dev/null",
-        "cwd": "/app/apps",
+        "out_file": "NULL",
+        "error_file": "NULL",
+        "cwd": "${PWD}/apps",
         "autorestart": true,
+        "instances": 1,
         "restart_delay": 1000
     },
     {
         "name": "argo",
         "script": "${cloudflare_tunnel_new_location}",
         "args": "${ARGO_ARGS}",
-        "log_file": "/dev/null",
+        "out_file": "NULL",
+        "error_file": "NULL",
         "env": {
-          "TUNNEL_TOKEN": "${ARGO_AUTH}",
-          },
+            "TUNNEL_TOKEN": "${ARGO_AUTH}",
+        },
         "autorestart": true,
+        "instance": 1,
         "restart_delay": 1000
 EOF
   [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
@@ -602,8 +610,9 @@ EOF
     {
         "name": "nztz",
         "script": "${nezha_agent_new_location}",
-        "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
+        "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS} --report-delay 3",
         "autorestart": true,
+        "instance": 1,
         "restart_delay": 1000
 EOF
   cat >> ecosystem.config.js << EOF

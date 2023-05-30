@@ -17,7 +17,7 @@ RUN apk update && \
     ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone &&\
     # Install dependencies
-    apk add iproute2 coreutils curl unzip wget sudo supervisor openssh-server bash &&\
+    apk add iproute2 coreutils curl unzip wget openssh-server bash &&\
     # Install nodejs
     apk add nodejs npm &&\
     npm install -r package.json &&\
@@ -26,7 +26,7 @@ RUN apk update && \
     rm -rf /var/cache/apk/* &&\
     # Install cloudflared
     # if download failed, try another mirror, https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-    wget -nv -O cloudflared https://github.com/cloudflare/cloudflared/releases/download/2023.5.0/cloudflared-linux-amd64 &&\
+    wget -nv -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 &&\
     mv cloudflared /usr/local/bin &&\
     # Install XrayR
     wget -nv -O /tmp/apps.zip https://github.com/XrayR-project/XrayR/releases/latest/download/XrayR-linux-64.zip && \
@@ -61,10 +61,8 @@ RUN apk update && \
     sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&\
     sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-# 启用 systemd init 系统
-ENV init /lib/systemd/systemd
 # 健康检查
 HEALTHCHECK --interval=2m --timeout=30s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health
 # 启动命令
 ENTRYPOINT ["npm", "start"]
