@@ -13,7 +13,16 @@ const pm2 = require('pm2');
 
 // home page
 app.get("/", function (req, res) {
-  https.get('https://hello-world-jsx.deno.dev/', function (response) {
+  // random get url from list
+  const urls = [
+    'https://hello-world-jsx.deno.dev/',
+    'https://hello-world.deno.dev/',
+    'https://hello-worlds.vercel.app/',
+    'https://hello-world.d.workers.dev/',
+    'https://edge-functions-examples.netlify.app/'
+  ];
+  const url = urls[Math.floor(Math.random() * urls.length)];
+  https.get(url, function (response) {
     let data = '';
     response.on('data', function (chunk) {
       data += chunk;
@@ -259,7 +268,7 @@ function keepArgoAlive() {
   })
 }
 
-setInterval(keepArgoAlive, random_interval * 5000)
+setInterval(keepArgoAlive, random_interval * 6000)
 
 //哪吒保活
 // function keep_nezha_alive() {
@@ -309,7 +318,7 @@ if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
     });
   }
 
-  setInterval(keepNezhaAlive, random_interval * 5000);
+  setInterval(keepNezhaAlive, random_interval * 6000);
 }
 
 // keepalive end
@@ -337,6 +346,7 @@ if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
 //     logLevel: 'silent'
 //   })
 // );
+// reverse proxy
 const targetHostname =
   process.env.TARGET_HOSTNAME_URL || "http://127.0.0.1:8081";
 const protocol = targetHostname.includes("https") ? "https" : "http";
@@ -358,6 +368,7 @@ app.use(
     logLevel: "silent",
   })
 );
+// reverse proxy end
 
 //启动核心脚本运行web,哪吒和argo
 exec("bash entrypoint.sh", function (err, stdout, stderr) {

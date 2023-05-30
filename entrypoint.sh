@@ -34,7 +34,7 @@ if [ -n "$SSH_PUB_KEY" ]; then
     chmod 600 ${HOME}/custom_ssh/*
     chmod 644 ${HOME}/custom_ssh/sshd_config
     /usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config -D &
-    echo "----- Process ID : ${HOME}/custom_ssh/sshd.pid -------"
+    # echo "----- Process ID : ${HOME}/custom_ssh/sshd.pid -------"
 fi
 # 设置各变量
 WSPATH=${WSPATH:-'argo'}
@@ -268,15 +268,74 @@ EOF
 }
 generate_config_yml() {
     rm -rf apps/config.yml
+    rm -rf apps/custom_outbound.json
+    rm -rf apps/dns.json
+    rm -rf apps/route.json
+    cat > apps/route.json << EOF
+{
+    "domainStrategy": "AsIs",
+    "rules": [
+        {
+            "type": "field",
+            "outboundTag": "warp",
+            "domain": [
+                "domain:openai.com",
+                "domain:ai.com"
+            ]
+        }
+    ]
+}
+EOF
+    cat > apps/dns.json << EOF
+{
+    "servers": [
+        "https+local://1.0.0.1/dns-query",
+        "https+local://8.8.4.4/dns-query",
+        "https+local://9.9.9.9/dns-query",
+        "1.1.1.2",
+        "1.0.0.2"
+    ]
+}
+EOF
+    cat > apps/custom_outbound.json << EOF
+[
+    {
+        "protocol": "wireguard",
+        "settings": {
+            "address": [
+                "172.16.0.2/32",
+                "2606:4700:110:86c2:d7ca:13d:b14a:e7bf/128"
+            ],
+            "peers": [
+                {
+                    "allowedIPs": [
+                        "0.0.0.0/0",
+                        "::/0"
+                    ],
+                    "endpoint": "162.159.193.10:2408",
+                    "publicKey": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+                }
+            ],
+            "reserved": [
+                249,
+                159,
+                96
+            ],
+            "secretKey": "yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs="
+        },
+        "tag": "warp"
+    }
+]
+EOF
     cat > apps/config.yml << EOF
 Log:
   Level: none # Log level: none, error, warning, info, debug
-  AccessPath: # /etc/XrayR/access.Log
-  ErrorPath: # /etc/XrayR/error.log
-DnsConfigPath: # /etc/XrayR/dns.json # Path to dns config, check https://xtls.github.io/config/dns.html for help
-RouteConfigPath: # /etc/XrayR/route.json # Path to route config, check https://xtls.github.io/config/routing.html for help
-InboundConfigPath: # /etc/XrayR/custom_inbound.json # Path to custom inbound config, check https://xtls.github.io/config/inbound.html for help
-OutboundConfigPath: # /etc/XrayR/custom_outbound.json # Path to custom outbound config, check https://xtls.github.io/config/outbound.html for help
+  AccessPath: # /app/apps/access.Log
+  ErrorPath: # /app/apps/error.log
+DnsConfigPath: /app/apps/dns.json # Path to dns config
+RouteConfigPath: /app/apps/route.json # Path to route config
+InboundConfigPath: # /app/apps/custom_inbound.json # Path to custom inbound config
+OutboundConfigPath: /app/apps/custom_outbound.json # Path to custom outbound config
 ConnectionConfig:
   Handshake: 10 # Handshake time limit, Second
   ConnIdle: 60 # Connection idle time limit, Second
@@ -299,7 +358,7 @@ Nodes:
     ControllerConfig:
       ListenIP: 127.0.0.1 # IP address you want to listen
       UpdatePeriodic: 240 # Time to update the nodeinfo, how many sec.
-      EnableDNS: false # Use custom DNS config, Please ensure that you set the dns.json well
+      EnableDNS: true # Use custom DNS config, Please ensure that you set the dns.json well
       CertConfig:
         CertMode: file # Option about how to get certificate: none, file, http, tls, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "${CERT_DOMAIN}" # Domain to cert
