@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 # install sshd and generate host keys
-mkdir ${HOME}/custom_ssh
-cat << EOF > ${HOME}/custom_ssh/sshd_config
-Port 2222
-HostKey ${HOME}/custom_ssh/ssh_host_rsa_key
-HostKey ${HOME}/custom_ssh/ssh_host_dsa_key
-AuthorizedKeysFile  ${HOME}/.ssh/authorized_keys
-PasswordAuthentication no
-#PermitEmptyPasswords yes
-PermitRootLogin yes
-PubkeyAuthentication yes
-## Enable DEBUG log.
-LogLevel DEBUG
-ChallengeResponseAuthentication no
-# UsePAM no
-X11Forwarding yes
-PrintMotd no
-AcceptEnv LANG LC_*
-Subsystem   sftp    /usr/lib/ssh/sftp-server
-PidFile ${HOME}/custom_ssh/sshd.pid
-EOF
 if [ -n "$SSH_PUB_KEY" ]; then
+    mkdir ${HOME}/custom_ssh
+    cat > ${HOME}/custom_ssh/sshd_config << EOF
+    Port 2222
+    HostKey ${HOME}/custom_ssh/ssh_host_rsa_key
+    HostKey ${HOME}/custom_ssh/ssh_host_dsa_key
+    AuthorizedKeysFile  ${HOME}/.ssh/authorized_keys
+    PasswordAuthentication no
+    #PermitEmptyPasswords yes
+    PermitRootLogin yes
+    PubkeyAuthentication yes
+    ## Enable DEBUG log.
+    LogLevel DEBUG
+    ChallengeResponseAuthentication no
+    # UsePAM no
+    X11Forwarding yes
+    PrintMotd no
+    AcceptEnv LANG LC_*
+    Subsystem   sftp    /usr/lib/ssh/sftp-server
+    PidFile ${HOME}/custom_ssh/sshd.pid
+EOF
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_rsa_key -N '' -t rsa
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_dsa_key -N '' -t dsa
     mkdir ${HOME}/.ssh
