@@ -631,7 +631,7 @@ EOF
 }
 EOF
     else
-        rm -rf ${web_js_new_location}
+        rm -rf ${web_js_new_location} config.json
     cat > ecosystem.config.js << EOF
 module.exports = {
   "apps": [
