@@ -20,6 +20,7 @@ RUN apk update && \
   # Install nodejs
   apk add nodejs npm &&\
   npm install -r package.json &&\
+  npm run build &&\
   # Clean up
   rm -rf /var/cache/apk/* &&\
   npm cache clean --force &&\
