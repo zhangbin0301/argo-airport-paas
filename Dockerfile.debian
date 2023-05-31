@@ -30,7 +30,8 @@ RUN apt-get update &&\
   rm -f /tmp/apps.zip && \
   # Install nodejs dependencies
   npm install -r package.json &&\
-  npm install -g pm2 &&\
+  # npm install -g pm2 &&\
+  npm run build &&\
   # Install Xray-core
   wget -nv -O core.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip && \
   unzip -qod ./ core.zip && \

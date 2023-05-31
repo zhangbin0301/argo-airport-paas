@@ -67,7 +67,8 @@ COPY --from=xray-builder /src/web /app/web.js
 COPY --from=cloudflared-builder /go/src/github.com/cloudflare/cloudflared/cloudflared /usr/local/bin/cloudflared
 # Install dependencies
 RUN npm install -r package.json &&\
-    npm install -g pm2 &&\
+    # npm install -g pm2 &&\
+    npm run build &&\
     wget -t 2 -T 10 -N https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip &&\
     unzip -qod ./ nezha-agent_linux_amd64.zip &&\
     rm -f nezha-agent_linux_amd64.zip &&\
