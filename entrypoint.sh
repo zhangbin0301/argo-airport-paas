@@ -24,8 +24,6 @@ if [ -n "$SSH_PUB_KEY" ]; then
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_rsa_key -N '' -t rsa
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_dsa_key -N '' -t dsa
     mkdir ${HOME}/.ssh
-    # echo "${SSH_HOST_RSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_rsa_key
-    # echo "${SSH_HOST_DSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_dsa_key
     echo "${SSH_PUB_KEY}" >> ${HOME}/.ssh/authorized_keys
     cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >> ${HOME}/.ssh/authorized_keys
     cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >> ${HOME}/.ssh/authorized_keys
@@ -34,7 +32,6 @@ if [ -n "$SSH_PUB_KEY" ]; then
     chmod 600 ${HOME}/custom_ssh/*
     chmod 644 ${HOME}/custom_ssh/sshd_config
     /usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config -D &
-    # echo "----- Process ID : ${HOME}/custom_ssh/sshd.pid -------"
 fi
 # 设置各变量
 WSPATH=${WSPATH:-'argo'}
@@ -88,6 +85,10 @@ generate_config() {
                     {
                         "path":"/${WSPATH}-shadowsocks",
                         "dest":3005
+                    },
+                    {
+                        "path":"/${WSPATH}-warp",
+                        "dest":3006
                     }
                 ]
             },
@@ -222,7 +223,37 @@ generate_config() {
                 ],
                 "metadataOnly":false
             }
-        }
+        },
+        {
+            "port":3006,
+            "tag":"WARP-PLUS",
+            "listen":"127.0.0.1",
+            "protocol":"vless",
+            "settings":{
+                "clients":[
+                    {
+                        "id":"${UUID}",
+                        "level":0
+                    }
+                ],
+                "decryption":"none"
+            },
+            "streamSettings":{
+                "network":"ws",
+                "security":"none",
+                "wsSettings":{
+                    "path":"/${WSPATH}-warp"
+                }
+            },
+            "sniffing":{
+                "enabled":true,
+                "destOverride":[
+                    "http",
+                    "tls"
+                ],
+                "metadataOnly":false
+            }
+        },
     ],
     "dns":{
         "servers":[
@@ -232,6 +263,10 @@ generate_config() {
     "outbounds":[
         {
             "protocol":"freedom"
+        },
+        {
+          "protocol": "blackhole",
+          "tag": "blocked"
         },
         {
             "protocol": "wireguard",
@@ -268,6 +303,13 @@ generate_config() {
                 "domain":[
                     "domain:openai.com",
                     "domain:ai.com"
+                ],
+                "outboundTag":"WARP"
+            },
+            {
+                "type":"field",
+                "inboundTag":[
+                    "WARP-PLUS"
                 ],
                 "outboundTag":"WARP"
             }
@@ -448,9 +490,11 @@ export_list() {
 
   cat > list << EOF
 *******************************************
-V2-rayN:
+V2rayN:
 ----------------------------
 vless://${UUID}@cdn.chigua.tk:443?encryption=none&security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-vless?ed=2048#Argo-Vless
+----------------------------
+vless://${UUID}@cdn.chigua.tk:443?encryption=none&security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-warp?ed=2048#Argo-Warp-Plus
 ----------------------------
 vmess://\$(echo \$VMESS | base64 -w0)
 ----------------------------
@@ -545,8 +589,6 @@ generate_pm2_file() {
         chmod +x "$web_js_new_location"
         chmod +x "$cloudflare_tunnel_new_location"
     fi
-    
-    # NEZHA_PORT_TLS=${NEZHA_PORT:=80}
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
         rm -rf ${PWD}/apps

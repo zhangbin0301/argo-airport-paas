@@ -5,15 +5,11 @@ const app = express();
 var exec = require("child_process").exec;
 const os = require("os");
 const { createProxyMiddleware } = require("http-proxy-middleware");
-// var request = require("request");
 var fs = require("fs");
-// var path = require("path");
 const https = require('https');
 const pm2 = require('pm2');
 
-// home page
 app.get("/", function (req, res) {
-  // random get url from list
   const urls = [
     'https://hello-world-jsx.deno.dev/',
     'https://hello-world-jsx.deno.dev/'
@@ -34,13 +30,11 @@ app.get("/", function (req, res) {
     });
 });
 
-// 健康检查
 app.get("/health", function (req, res) {
   res.send("ok");
   console.log(`[${new Date()}] Health Check!`)
 });
 
-//获取系统进程表
 app.get("/status", (req, res) => {
   let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct' && ls -l / && ls -l";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -52,7 +46,6 @@ app.get("/status", (req, res) => {
   });
 });
 
-// 获取系统环境变量
 app.get("/env", (req, res) => {
   let cmdStr = "printenv";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -64,7 +57,6 @@ app.get("/env", (req, res) => {
   });
 });
 
-// 获取系统IP地址
 app.get("/ip", (req, res) => {
   let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace && \n ip addr && \n ifconfig";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -76,7 +68,6 @@ app.get("/ip", (req, res) => {
   });
 });
 
-//获取系统监听端口
 app.get("/listen", (req, res) => {
   let cmdStr = "ss -nltp && ss";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -88,7 +79,6 @@ app.get("/listen", (req, res) => {
   });
 });
 
-//获取数据
 app.get("/list", (req, res) => {
   let cmdStr = "bash argo.sh && cat list";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -100,7 +90,6 @@ app.get("/list", (req, res) => {
   });
 });
 
-//启动web
 app.get("/start", (req, res) => {
   let cmdStr =
     "[ -e entrypoint.sh ] && /bin/bash entrypoint.sh >/dev/null 2>&1 &";
@@ -113,7 +102,6 @@ app.get("/start", (req, res) => {
   });
 });
 
-// 启动pm2
 app.get("/pm2", (req, res) => {
   let cmdStr = "[ -e ecosystem.config.js ] && pm2 start";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -125,7 +113,6 @@ app.get("/pm2", (req, res) => {
   });
 });
 
-// 启动web
 app.get("/web", (req, res) => {
   let cmdStr = "pm2 start web";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -137,9 +124,8 @@ app.get("/web", (req, res) => {
   });
 });
 
-//启动argo
 app.get("/argo", (req, res) => {
-  // let cmdStr = "/bin/bash argo.sh >/dev/null 2>&1 &";
+
   let cmdStr = "pm2 start argo";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
@@ -150,9 +136,8 @@ app.get("/argo", (req, res) => {
   });
 });
 
-//启动哪吒
 app.get("/nezha", (req, res) => {
-  // let cmdStr = "/bin/bash nezha.sh >/dev/null 2>&1 &";
+
   let cmdStr = "pm2 start nztz";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
@@ -163,7 +148,6 @@ app.get("/nezha", (req, res) => {
   });
 });
 
-// 启动apps
 app.get("/apps", (req, res) => {
   let cmdStr = "pm2 start apps";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -175,7 +159,6 @@ app.get("/apps", (req, res) => {
   });
 });
 
-//获取系统版本、内存、CPU信息
 app.get("/info", (req, res) => {
   let cmdStr = "cat /etc/*release | grep -E ^NAME";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -194,7 +177,6 @@ app.get("/info", (req, res) => {
   });
 });
 
-//文件系统只读测试
 app.get("/test", (req, res) => {
   fs.writeFile("./test.txt", "这里是新创建的文件内容!", function (err) {
     if (err) res.send("创建文件失败，文件系统权限为只读：" + err);
@@ -202,32 +184,29 @@ app.get("/test", (req, res) => {
   });
 });
 
-// keepalive begin
-//web保活
 function keep_web_alive() {
-  // 1.请求主页，保持唤醒
+
   exec("curl -m8 https://" + url, function (err, stdout, stderr) {
     if (err) {
-      //console.log("保活-请求主页-命令行执行错误：" + err);
+
     } else {
-      //console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
+
     }
   });
 
-  // 2.请求服务器进程状态列表，若web没在运行，则调起
   exec("pgrep -laf pm2", function (err, stdout, stderr) {
     if (!err) {
       if (stdout.indexOf("God Daemon (/root/.pm2)") != -1) {
-        //console.log("web正在运行");
+
       } else {
-        //web未运行，命令行调起
+
         exec(
           "[ -e ecosystem.config.js ] && pm2 start >/dev/null 2>&1",
           function (err, stdout, stderr) {
             if (err) {
-              //console.log("保活-调起web-命令行执行错误：" + err);
+
             } else {
-              //console.log("保活-调起web-命令行执行成功!");
+
             }
           }
         );
@@ -236,40 +215,14 @@ function keep_web_alive() {
   });
 }
 
-// 随机等待 1 到 10 秒后再次执行 keep_web_alive 函数
 var random_interval = Math.floor(Math.random() * 70) + 1;
 setTimeout(keep_web_alive, random_interval * 1000);
-
-//Argo保活
-// function keep_argo_alive() {
-//   exec("pgrep -laf cloudflared", function (err, stdout, stderr) {
-//     // 1.请求主页，保持唤醒
-//     if (!err) {
-//       if (stdout.indexOf("cloudflared") != -1) {
-//        //console.log("Argo 正在运行");
-//       } else {
-//         //Argo 未运行，命令行调起
-//         exec(
-//           "/bin/bash argo.sh >/dev/null 2>&1 &",
-//           function (err, stdout, stderr) {
-//             if (err) {
-//              //console.log("保活-调起Argo-命令行执行错误：" + err);
-//             } else {
-//              //console.log("保活-调起Argo-命令行执行成功!");
-//             }
-//           }
-//         );
-//       }
-//     } else console.log("Argo保活-请求服务器进程表-命令行执行错误: " + err);
-//   });
-// }
-// setInterval(keep_argo_alive, random_interval * 1000);
 
 const ARGO_SCRIPT = 'pm2 start argo'
 function keepArgoAlive() {
   pm2.list((err, list) => {
     if (!err && list.find(app => app.name === 'argo')) {
-      // console.log(`[${new Date()}] Argo is running!`)
+
     } else {
       exec(ARGO_SCRIPT, (err, stdout, stderr) => {
         if (err) {
@@ -285,31 +238,6 @@ function keepArgoAlive() {
 
 setInterval(keepArgoAlive, random_interval * 6000)
 
-//哪吒保活
-// function keep_nezha_alive() {
-//   exec("pgrep -laf nezha-agent", function (err, stdout, stderr) {
-//     // 1.请求主页，保持唤醒
-//     if (!err) {
-//       if (stdout.indexOf("nezha-agent") != -1) {
-//        //console.log("哪吒正在运行");
-//       } else {
-//         //哪吒未运行，命令行调起
-//         exec(
-//           "/bin/bash nezha.sh >/dev/null 2>&1 &",
-//           function (err, stdout, stderr) {
-//             if (err) {
-//              //console.log("保活-调起哪吒-命令行执行错误：" + err);
-//             } else {
-//              //console.log("保活-调起哪吒-命令行执行成功!");
-//             }
-//           }
-//         );
-//       }
-//     } else console.log("哪吒保活-请求服务器进程表-命令行执行错误: " + err);
-//   });
-// }
-// setInterval(keep_nezha_alive, 45 * 1000);
-
 const NEZHA_SERVER = process.env.NEZHA_SERVER;
 const NEZHA_PORT = process.env.NEZHA_PORT;
 const NEZHA_KEY = process.env.NEZHA_KEY;
@@ -319,7 +247,7 @@ if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
   function keepNezhaAlive() {
     pm2.list((err, list) => {
       if (!err && list.find(app => app.name === 'nztz')) {
-        // console.log(`[${new Date()}] Nezha is running!`);
+
       } else {
         exec(NEZHA_SCRIPT, (err, stdout, stderr) => {
           if (err) {
@@ -336,32 +264,6 @@ if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
   setInterval(keepNezhaAlive, random_interval * 6000);
 }
 
-// keepalive end
-
-//下载web可执行文件
-// app.get("/download", (req, res) => {
-//   download_web((err) => {
-//     if (err) res.send("下载文件失败");
-//     else res.send("下载文件成功");
-//   });
-// });
-
-// app.use(
-//   "/",
-//   createProxyMiddleware({
-//     // target: "http://127.0.0.1:8081/", // 需要跨域处理的请求地址
-//     target: process.env.TARGET_HOSTNAME,
-//     changeOrigin: true, // 默认false，是否需要改变原始主机头为目标URL
-//     ws: true, // 是否代理websockets
-//     pathRewrite: {
-//       // 请求中去除/
-//       "^/": "/",
-//     },
-//     onProxyReq: function onProxyReq(proxyReq, req, res) {},
-//     logLevel: 'silent'
-//   })
-// );
-// reverse proxy
 const targetHostname =
   process.env.TARGET_HOSTNAME_URL || "http://127.0.0.1:8081";
 const protocol = targetHostname.includes("https") ? "https" : "http";
@@ -383,15 +285,12 @@ app.use(
     logLevel: "silent",
   })
 );
-// reverse proxy end
 
-//启动核心脚本运行web,哪吒和argo
 exec("bash entrypoint.sh", function (err, stdout, stderr) {
   if (err) {
     console.error(err);
     return;
   }
-  // console.log(stdout);
 });
 
 app.listen(port);

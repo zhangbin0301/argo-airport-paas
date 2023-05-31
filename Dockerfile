@@ -2,7 +2,6 @@ FROM alpine:latest
 EXPOSE 3000
 WORKDIR /app
 # COPY . .
-# COPY web.js /app/web.js
 COPY server.js /app/server.js
 COPY package.json /app/package.json
 COPY entrypoint.sh /app/entrypoint.sh
@@ -21,9 +20,9 @@ RUN apk update && \
   # Install nodejs
   apk add nodejs npm &&\
   npm install -r package.json &&\
-  npm install -g pm2 &&\
   # Clean up
   rm -rf /var/cache/apk/* &&\
+  npm cache clean --force &&\
   # Install cloudflared
   # if download failed, try another mirror, https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
   wget -nv -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 &&\
