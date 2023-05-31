@@ -42,10 +42,11 @@ UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
 MAX_MEMORY_RESTART=${MAX_MEMORY_RESTART:-'128M'}
 CERT_DOMAIN=${CERT_DOMAIN:-'example.com'}
 PANEL_TYPE=${PANEL_TYPE:-'NewV2board'}
-RELEASE_RANDOMNESS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-RELEASE_RANDOMNESS2=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-RELEASE_RANDOMNESS3=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-RELEASE_RANDOMNESS4=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+ARGO_DOMAIN=${ARGO_DOMAIN:-'example.com'}
+NEZHA_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+APPS_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+WEBJS_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+ARGO_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
 # change dns to cloudflare
 echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2"> /etc/resolv.conf
 generate_config() {
@@ -233,21 +234,30 @@ generate_config() {
             "protocol":"freedom"
         },
         {
-            "tag":"WARP",
-            "protocol":"wireguard",
-            "settings":{
-                "secretKey":"yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs=",
-                "address":[
+            "protocol": "wireguard",
+            "settings": {
+                "address": [
                     "172.16.0.2/32",
                     "2606:4700:110:86c2:d7ca:13d:b14a:e7bf/128"
                 ],
-                "peers":[
+                "peers": [
                     {
-                        "publicKey":"bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
-                        "endpoint":"162.159.193.10:2408"
+                        "allowedIPs": [
+                            "0.0.0.0/0",
+                            "::/0"
+                        ],
+                        "endpoint": "162.159.193.10:2408",
+                        "publicKey": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
                     }
-                ]
-            }
+                ],
+                "reserved": [
+                    249,
+                    159,
+                    96
+                ],
+                "secretKey": "yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs="
+            },
+            "tag": "WARP"
         }
     ],
     "routing":{
@@ -277,7 +287,7 @@ generate_config_yml() {
     "rules": [
         {
             "type": "field",
-            "outboundTag": "warp",
+            "outboundTag": "WARP",
             "domain": [
                 "domain:openai.com",
                 "domain:ai.com"
@@ -291,6 +301,7 @@ EOF
     "servers": [
         "https+local://1.0.0.1/dns-query",
         "https+local://8.8.4.4/dns-query",
+        "https+local://8.8.8.8/dns-query",
         "https+local://9.9.9.9/dns-query",
         "1.1.1.2",
         "1.0.0.2"
@@ -323,7 +334,7 @@ EOF
             ],
             "secretKey": "yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs="
         },
-        "tag": "warp"
+        "tag": "WARP"
     }
 ]
 EOF
@@ -483,7 +494,7 @@ generate_nezha() {
 
 # 检测是否已运行
 check_run() {
-  [[ \$(pgrep -laf ${RELEASE_RANDOMNESS}) ]] && echo "哪吒客户端正在运行中" && exit
+  [[ \$(pgrep -laf ${NEZHA_RANDOMNAME}) ]] && echo "哪吒客户端正在运行中" && exit
 }
 
 # 三个变量不全则不安装哪吒客户端
@@ -493,7 +504,7 @@ check_variable() {
 
 # 下载最新版本 Nezha Agent
 download_agent() {
-  if [ ! -e ${RELEASE_RANDOMNESS} ]; then
+  if [ ! -e ${NEZHA_RANDOMNAME} ]; then
     URL="https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip"
     wget -t 2 -T 10 -N \${URL}
     unzip -qod ./ nezha-agent_linux_amd64.zip && rm -f nezha-agent_linux_amd64.zip
@@ -518,13 +529,13 @@ generate_pm2_file() {
         echo "ecosystem.config.js 文件存在,跳过移动命令"
     else
         nezha_agent_file=${PWD}/nezha-agent
-        nezha_agent_new_location=${PWD}/${RELEASE_RANDOMNESS}
+        nezha_agent_new_location=${PWD}/${NEZHA_RANDOMNAME}
         app_binary_name_file=${PWD}/apps/myapps.js
-        app_binary_name_new_location=${PWD}/apps/${RELEASE_RANDOMNESS2}.js
+        app_binary_name_new_location=${PWD}/apps/${APPS_RANDOMNAME}.js
         web_js_file=${PWD}/web.js
-        web_js_new_location=${PWD}/${RELEASE_RANDOMNESS3}.js
+        web_js_new_location=${PWD}/${WEBJS_RANDOMNAME}.js
         cloudflare_tunnel_file=/usr/local/bin/cloudflared
-        cloudflare_tunnel_new_location=/usr/local/bin/${RELEASE_RANDOMNESS4}
+        cloudflare_tunnel_new_location=/usr/local/bin/${ARGO_RANDOMNAME}
         mv "$nezha_agent_file" "$nezha_agent_new_location"
         mv "$app_binary_name_file" "$app_binary_name_new_location"
         mv "$web_js_file" "$web_js_new_location"
@@ -538,7 +549,7 @@ generate_pm2_file() {
     # NEZHA_PORT_TLS=${NEZHA_PORT:=80}
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
-    rm -rf ${PWD}/apps
+        rm -rf ${PWD}/apps
     cat > ecosystem.config.js << EOF
 module.exports = {
 "apps":[
@@ -578,7 +589,7 @@ EOF
 }
 EOF
     else
-    rm -rf ${web_js_new_location}
+        rm -rf ${web_js_new_location}
     cat > ecosystem.config.js << EOF
 module.exports = {
   "apps": [

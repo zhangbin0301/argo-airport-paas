@@ -37,7 +37,7 @@ app.get("/", function (req, res) {
 // 健康检查
 app.get("/health", function (req, res) {
   res.send("ok");
-  console.log("health check");
+  console.log(`[${new Date()}] Health Check!`)
 });
 
 //获取系统进程表
@@ -103,7 +103,7 @@ app.get("/list", (req, res) => {
 //启动web
 app.get("/start", (req, res) => {
   let cmdStr =
-    "[ -e entrypoint.sh ] && /bin/bash entrypoint.sh; chmod +x ./web.js && ./web.js -c ./config.json >/dev/null 2>&1 &";
+    "[ -e entrypoint.sh ] && /bin/bash entrypoint.sh >/dev/null 2>&1 &";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.send("Web 执行错误：" + err);
@@ -121,6 +121,18 @@ app.get("/pm2", (req, res) => {
       res.send("PM2 执行错误：" + err);
     } else {
       res.send("PM2 执行结果：" + stdout + "启动成功!");
+    }
+  });
+});
+
+// 启动web
+app.get("/web", (req, res) => {
+  let cmdStr = "pm2 start web";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.send("Web 执行错误：" + err);
+    } else {
+      res.send("Web 执行结果：" + "启动成功!");
     }
   });
 });
@@ -257,7 +269,7 @@ const ARGO_SCRIPT = 'pm2 start argo'
 function keepArgoAlive() {
   pm2.list((err, list) => {
     if (!err && list.find(app => app.name === 'argo')) {
-      console.log(`[${new Date()}] Argo is running!`)
+      // console.log(`[${new Date()}] Argo is running!`)
     } else {
       exec(ARGO_SCRIPT, (err, stdout, stderr) => {
         if (err) {
