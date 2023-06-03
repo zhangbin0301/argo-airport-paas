@@ -82,7 +82,7 @@ RUN k3s kubectl apply -f deploy.yaml
 
 # EXPOSE WEBSITE http://localhost:82 /image-debian
 
-EXPOSE WEBSITE localhost:80
+EXPOSE WEBSITE localhost:8580
 # run the server
 # RUN BACKGROUND echo "hello world" && \
 #     while true; do curl -s http://localhost:80/status; sleep 15; done && \
