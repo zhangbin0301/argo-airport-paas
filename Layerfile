@@ -30,13 +30,13 @@ RUN apt-get update && \
 # install & start k3s
 RUN curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.21.2+k3s1 sh -s - --docker
 # initialize the swarm cluster
-RUN docker swarm init
+# RUN docker swarm init
 # copy files from the repository into this staging server
 COPY . .
 # output the environment variables to a file
 RUN echo "$ENV_FILE" | base64 -d > ~/.env
 # show the environment variables
-RUN cat ~/.env
+# RUN cat ~/.env
 # copy the docker-compose file into the staging server
 RUN cp docker-compose.example.yml docker-compose.yml
 RUN cp docker-compose.example-swarm.yml docker-compose.swarm.yml
@@ -45,13 +45,14 @@ RUN cp deploy.example.yaml deploy.yaml
 # RUN REPEATABLE docker compose build --parallel
 # RUN docker compose up web web-build -d
 # systemctl restart k3s is required here because tokens expire when things are hibernated
-RUN BACKGROUND systemctl restart k3s && \
-    kubectl create configmap config-env --from-env-file=.env && \
-    k3s kubectl apply -f deploy.yaml
+RUN systemctl restart k3s && \
+    kubectl create configmap config-env --from-env-file=.env
+
+RUN k3s kubectl apply -f deploy.yaml
 # RUN docker ps -a
 # deploy the stack to the swarm cluster (this will run the containers at background)
 # RUN BACKGROUND docker stack deploy -c docker-compose.swarm.yml argo-paas-swarm
-RUN docker ps -a
+# RUN docker ps -a
 # RUN docker build -f Dockerfile.build -t image-build .
 # RUN docker build -t image .
 # RUN docker build -f Dockerfile.debian -t image-debian .
@@ -83,6 +84,6 @@ RUN docker ps -a
 
 EXPOSE WEBSITE localhost:80
 # run the server
-RUN BACKGROUND echo "hello world" && \
-    while true; do curl -s http://localhost:80/status; sleep 15; done && \
-    tail -f /dev/null
+# RUN BACKGROUND echo "hello world" && \
+#     while true; do curl -s http://localhost:80/status; sleep 15; done && \
+#     tail -f /dev/null
