@@ -45,8 +45,8 @@ RUN cp deploy.example.yaml deploy.yaml
 # RUN REPEATABLE docker compose build --parallel
 # RUN docker compose up web web-build -d
 # systemctl restart k3s is required here because tokens expire when things are hibernated
-RUN systemctl restart k3s && \
-    kubectl create configmap config-env --from-env-file=.env
+RUN systemctl restart k3s
+RUN kubectl create configmap config-env --from-env-file=.env
 
 RUN k3s kubectl apply -f deploy.yaml
 # RUN docker ps -a
@@ -87,3 +87,11 @@ EXPOSE WEBSITE localhost:8580
 # RUN BACKGROUND echo "hello world" && \
 #     while true; do curl -s http://localhost:80/status; sleep 15; done && \
 #     tail -f /dev/null
+# FROM /Layerfile
+# # RUN /bin/bash -c "echo 'hello world'"
+# RUN docker swarm init
+# RUN REPEATABLE docker compose build --parallel
+# RUN docker compose up web web-build -d
+# # deploy the stack to the swarm cluster (this will run the containers at background)
+# RUN BACKGROUND docker stack deploy -c docker-compose.swarm.yml argo-paas-swarm
+# RUN docker ps -a

@@ -19,7 +19,6 @@ spec:
           image: ghcr.io/3kmfi6hp/argo-airport-paas:main
           ports:
             - containerPort: 3000
-              protocol: TCP
           envFrom:
             - configMapRef:
                 name: config-env
@@ -30,16 +29,6 @@ spec:
             requests:
               cpu: "1"
               memory: "1024Mi"
-          livenessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 15
-            periodSeconds: 5
-          readinessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 3
           imagePullPolicy: Always
 ---
 apiVersion: v1
@@ -51,6 +40,5 @@ spec:
   ports:
     - port: 8580
       targetPort: 3000
-      protocol: TCP
   selector:
     app: argo-airport-paas
