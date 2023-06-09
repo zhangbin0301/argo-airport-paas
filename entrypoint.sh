@@ -253,7 +253,7 @@ generate_config() {
                 ],
                 "metadataOnly":false
             }
-        },
+        }
     ],
     "dns":{
         "servers":[
