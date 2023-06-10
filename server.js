@@ -9,12 +9,13 @@ var fs = require("fs");
 const https = require('https');
 const pm2 = require('pm2');
 
+const urls = [
+  'https://hello-world-jsx.deno.dev/',
+  'https://hello-world.com/'
+];
+
 app.get("/", function (req, res) {
-  const urls = [
-    'https://hello-world-jsx.deno.dev/',
-    'https://hello-world-jsx.deno.dev/'
-  ];
-  const url = urls[Math.floor(Math.random() * urls.length)];
+  const url = process.env.FAKE_URL || urls[Math.floor(Math.random() * urls.length)];
   https.get(url, function (response) {
     let data = '';
     response.on('data', function (chunk) {
@@ -47,7 +48,7 @@ app.get("/status", (req, res) => {
 });
 
 app.get("/env", (req, res) => {
-  let cmdStr = "printenv";
+  let cmdStr = "whoami && printenv";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
@@ -188,30 +189,31 @@ function keep_web_alive() {
 
   exec("curl -m8 https://" + url, function (err, stdout, stderr) {
     if (err) {
-
+      console.log("curl error: " + err);
     } else {
-
+      console.log("curl success: " + stdout);
     }
   });
 
-  exec("pgrep -laf pm2", function (err, stdout, stderr) {
+  exec("pgrep -laf PM2", function (err, stdout, stderr) {
     if (!err) {
-      if (stdout.indexOf("God Daemon (/root/.pm2)") != -1) {
-
+      if (stdout.indexOf("God Daemon") != -1) {
+        console.log("pm2 already running");
       } else {
-
         exec(
           "[ -e ecosystem.config.js ] && pm2 start >/dev/null 2>&1",
           function (err, stdout, stderr) {
             if (err) {
-
+              console.log("pm2 start error: " + err);
             } else {
-
+              console.log("pm2 start success: " + stdout);
             }
           }
         );
       }
-    } else console.log("请求服务器进程表-命令行执行错误: " + err);
+    } else {
+      console.log("pgrep error: " + err);
+    }
   });
 }
 
@@ -264,27 +266,23 @@ if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
   setInterval(keepNezhaAlive, random_interval * 6000);
 }
 
-const targetHostname =
-  process.env.TARGET_HOSTNAME_URL || "http://127.0.0.1:8081";
-const protocol = targetHostname.includes("https") ? "https" : "http";
+const targetHostname = process.env.TARGET_HOSTNAME_URL || "http://127.0.0.1:8081";
+const protocol = targetHostname.startsWith("https") ? "https" : "http";
 
-app.use(
-  "/",
-  createProxyMiddleware({
-    target: `${protocol}://${targetHostname
-      .replace("https://", "")
-      .replace("http://", "")}`,
-    changeOrigin: true,
-    ws: true,
-    secure: false,
-    rejectUnauthorized: false,
-    pathRewrite: {
-      "^/": "/",
-    },
-    onProxyReq: function onProxyReq(proxyReq, req, res) { },
-    logLevel: "silent",
-  })
-);
+const proxyMiddlewareOptions = {
+  target: `${protocol}://${targetHostname.replace(/^https?:\/\//, "")}`,
+  changeOrigin: true,
+  ws: true,
+  secure: false,
+  rejectUnauthorized: false,
+  pathRewrite: {
+    "^/": "/",
+  },
+  onProxyReq: function onProxyReq(proxyReq, req, res) { },
+  logLevel: "silent",
+};
+
+app.use("/", createProxyMiddleware(proxyMiddlewareOptions));
 
 exec("bash entrypoint.sh", function (err, stdout, stderr) {
   if (err) {

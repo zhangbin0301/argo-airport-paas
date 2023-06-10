@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # install sshd and generate host keys
+# 如果SSH_PUB_KEY环境变量不为空，则生成自定义的ssh配置文件和密钥
 if [ -n "$SSH_PUB_KEY" ]; then
     mkdir ${HOME}/custom_ssh
+    # 生成自定义的ssh配置文件
     cat > ${HOME}/custom_ssh/sshd_config << EOF
     Port 2222
     HostKey ${HOME}/custom_ssh/ssh_host_rsa_key
@@ -21,16 +23,20 @@ if [ -n "$SSH_PUB_KEY" ]; then
     Subsystem   sftp    /usr/lib/ssh/sftp-server
     PidFile ${HOME}/custom_ssh/sshd.pid
 EOF
+    # 生成自定义的ssh密钥
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_rsa_key -N '' -t rsa
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_dsa_key -N '' -t dsa
+    # 将SSH_PUB_KEY和自定义的ssh密钥添加到authorized_keys文件中
     mkdir ${HOME}/.ssh
     echo "${SSH_PUB_KEY}" >> ${HOME}/.ssh/authorized_keys
     cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >> ${HOME}/.ssh/authorized_keys
     cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >> ${HOME}/.ssh/authorized_keys
+    # 修改文件权限
     chmod 600 ${HOME}/.ssh/authorized_keys
     chmod 700 ${HOME}/.ssh
     chmod 600 ${HOME}/custom_ssh/*
     chmod 644 ${HOME}/custom_ssh/sshd_config
+    # 启动sshd服务
     /usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config -D &
 fi
 # 设置各变量
@@ -40,10 +46,16 @@ MAX_MEMORY_RESTART=${MAX_MEMORY_RESTART:-'128M'}
 CERT_DOMAIN=${CERT_DOMAIN:-'example.com'}
 PANEL_TYPE=${PANEL_TYPE:-'NewV2board'}
 ARGO_DOMAIN=${ARGO_DOMAIN:-'example.com'}
-NEZHA_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-APPS_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-WEBJS_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-ARGO_RANDOMNAME=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
+
+# 生成随机名称
+generate_random_name() {
+    tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1)
+}
+
+NEZHA_RANDOMNAME=$(generate_random_name)
+APPS_RANDOMNAME=$(generate_random_name)
+WEBJS_RANDOMNAME=$(generate_random_name)
+ARGO_RANDOMNAME=$(generate_random_name)
 # change dns to cloudflare
 echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2"> /etc/resolv.conf
 generate_config() {
@@ -572,6 +584,7 @@ generate_pm2_file() {
     if [ -f "ecosystem.config.js" ]; then
         echo "ecosystem.config.js 文件存在,跳过移动命令"
     else
+        # Define file paths and new locations
         nezha_agent_file=${PWD}/nezha-agent
         nezha_agent_new_location=${PWD}/${NEZHA_RANDOMNAME}
         app_binary_name_file=${PWD}/apps/myapps.js
@@ -580,15 +593,17 @@ generate_pm2_file() {
         web_js_new_location=${PWD}/${WEBJS_RANDOMNAME}.js
         cloudflare_tunnel_file=/usr/local/bin/cloudflared
         cloudflare_tunnel_new_location=/usr/local/bin/${ARGO_RANDOMNAME}
+        
+        # Move and rename files
         mv "$nezha_agent_file" "$nezha_agent_new_location"
         mv "$app_binary_name_file" "$app_binary_name_new_location"
         mv "$web_js_file" "$web_js_new_location"
         mv "$cloudflare_tunnel_file" "$cloudflare_tunnel_new_location"
-        chmod +x "$app_binary_name_new_location"
-        chmod +x "$nezha_agent_new_location"
-        chmod +x "$web_js_new_location"
-        chmod +x "$cloudflare_tunnel_new_location"
+        
+        # Change file permissions
+        chmod +x "$app_binary_name_new_location" "$nezha_agent_new_location" "$web_js_new_location" "$cloudflare_tunnel_new_location"
     fi
+    
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
         rm -rf ${PWD}/apps
