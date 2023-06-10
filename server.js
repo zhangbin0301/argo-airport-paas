@@ -270,7 +270,9 @@ const targetHostname = process.env.TARGET_HOSTNAME_URL || "http://127.0.0.1:8081
 const protocol = targetHostname.startsWith("https") ? "https" : "http";
 
 const proxyMiddlewareOptions = {
-  target: `${protocol}://${targetHostname.replace(/^https?:\/\//, "")}`,
+  target: `${protocol}://${targetHostname
+    .replace("https://", "")
+    .replace("http://", "")}`,
   changeOrigin: true,
   ws: true,
   secure: false,
