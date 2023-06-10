@@ -187,7 +187,7 @@ app.get("/test", (req, res) => {
 
 function keep_web_alive() {
 
-  exec("curl -m8 https://" + url, function (err, stdout, stderr) {
+  exec("curl -m8 http://" + url, function (err, stdout, stderr) {
     if (err) {
       console.log("curl error: " + err);
     } else {
