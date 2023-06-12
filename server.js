@@ -1,5 +1,5 @@
 const port = process.env.PORT || 3000;
-const url = process.env.EXTERNAL_HOSTNAME || process.env.SPACE_HOST || "http://localhost:" + port;
+const url = process.env.EXTERNAL_HOSTNAME || process.env.RENDER_EXTERNAL_URL || process.env.NF_HOSTS || process.env.SPACE_HOST || "http://localhost:" + port;
 const express = require("express");
 const app = express();
 var exec = require("child_process").exec;
@@ -219,7 +219,7 @@ function keep_web_alive() {
   });
 }
 
-var random_interval = Math.floor(Math.random() * 70) + 1;
+var random_interval = Math.floor(Math.random() * 30) + 1;
 setTimeout(keep_web_alive, random_interval * 1000);
 
 const ARGO_SCRIPT = 'pm2 start argo'
@@ -282,7 +282,9 @@ const proxyMiddlewareOptions = {
   pathRewrite: {
     "^/": "/",
   },
-  onProxyReq: function onProxyReq(proxyReq, req, res) { },
+  onProxyReq: function onProxyReq(proxyReq, req, res) {
+    console.log(`[${new Date()}] Incomming request ${req.method} ${req.url} to ${targetHostname}`);
+  },
   logLevel: "silent",
 };
 
