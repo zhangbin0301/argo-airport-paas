@@ -49,3 +49,5 @@ chmod +x web.js && \
 echo 'root:password' | chpasswd && \
 sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
 sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+# add image build time in env var
+export IMAGE_BUILT_AT="$(date)"

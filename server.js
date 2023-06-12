@@ -294,5 +294,8 @@ exec("bash entrypoint.sh", function (err, stdout, stderr) {
     return;
   }
 });
-
+// show the IP address in the console if server is running
+console.log(`[${new Date()}] Server running at ${url}`);
+// show the build time from environment variable
+console.log(`[${new Date()}] Image build time: ${process.env.IMAGE_BUILT_AT}`);
 app.listen(port);

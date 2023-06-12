@@ -1,5 +1,5 @@
 FROM alpine:latest
-EXPOSE 3000
+EXPOSE 3000 2222
 WORKDIR /app
 # COPY . .
 COPY server.js /app/server.js
