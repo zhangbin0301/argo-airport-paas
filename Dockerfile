@@ -9,7 +9,6 @@ COPY setup-alpine.sh /app/setup.sh
 
 ENV TZ="Asia/Singapore"
 ENV NODE_ENV="production"
-ENV IMAGE_BUILT_AT="$(date)"
 # Install dependencies
 RUN chmod +x /app/setup.sh &&\
   /app/setup.sh &&\

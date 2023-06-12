@@ -49,4 +49,5 @@ chmod +x web.js && \
 echo 'root:password' | chpasswd && \
 sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
 sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+export IMAGE_BUILT_AT=$(date --rfc-3339=seconds)
 echo "Image built at $IMAGE_BUILT_AT"
