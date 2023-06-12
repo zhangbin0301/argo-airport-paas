@@ -1,5 +1,5 @@
 const port = process.env.PORT || 3000;
-const url = process.env.RENDER_EXTERNAL_HOSTNAME || "localhost:" + port;
+const url = process.env.EXTERNAL_HOSTNAME || process.env.SPACE_HOST || "http://localhost:" + port;
 const express = require("express");
 const app = express();
 var exec = require("child_process").exec;
@@ -11,7 +11,8 @@ const pm2 = require('pm2');
 
 const urls = [
   'https://hello-world-jsx.deno.dev/',
-  'https://hello-world.com/'
+  'https://hello-world.com/',
+  'https://hello-world.deno.dev/'
 ];
 
 app.get("/", function (req, res) {
@@ -38,55 +39,55 @@ app.get("/health", function (req, res) {
 
 app.get("/status", (req, res) => {
   let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct' && ls -l / && ls -l";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err, stdout) {
     if (err) {
-      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+      res.type("html").send("<pre>Command execution error:\n" + err + "</pre>");
     } else {
-      res.type("html").send("<pre>获取系统进程表：\n" + stdout + "</pre>");
+      res.type("html").send("<pre>System process table:\n" + stdout + "</pre>");
     }
   });
 });
 
 app.get("/env", (req, res) => {
   let cmdStr = "whoami && printenv";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err, stdout) {
     if (err) {
-      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+      res.type("html").send("<pre>Command execution error:\n" + err + "</pre>");
     } else {
-      res.type("html").send("<pre>获取系统环境变量：\n" + stdout + "</pre>");
+      res.type("html").send("<pre>System environment variables:\n" + stdout + "</pre>");
     }
   });
 });
 
 app.get("/ip", (req, res) => {
   let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace && \n ip addr && \n ifconfig";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err, stdout) {
     if (err) {
-      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+      res.type("html").send("<pre>Command execution error:\n" + err + "</pre>");
     } else {
-      res.type("html").send("<pre>获取系统IP地址：\n" + stdout + "</pre>");
+      res.type("html").send("<pre>System IP address:\n" + stdout + "</pre>");
     }
   });
 });
 
 app.get("/listen", (req, res) => {
   let cmdStr = "ss -nltp && ss";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err, stdout) {
     if (err) {
-      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+      res.type("html").send("<pre>Command execution error:\n" + err + "</pre>");
     } else {
-      res.type("html").send("<pre>获取系统监听端口：\n" + stdout + "</pre>");
+      res.type("html").send("<pre>System listening ports:\n" + stdout + "</pre>");
     }
   });
 });
 
 app.get("/list", (req, res) => {
   let cmdStr = "bash argo.sh && cat list";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err, stdout) {
     if (err) {
-      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+      res.type("html").send("<pre>Command execution error:\n" + err + "</pre>");
     } else {
-      res.type("html").send("<pre>优选IP节点数据：\n\n" + stdout + "</pre>");
+      res.type("html").send("<pre>Optimized IP node data:\n\n" + stdout + "</pre>");
     }
   });
 });
@@ -94,33 +95,33 @@ app.get("/list", (req, res) => {
 app.get("/start", (req, res) => {
   let cmdStr =
     "[ -e entrypoint.sh ] && /bin/bash entrypoint.sh >/dev/null 2>&1 &";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err) {
     if (err) {
-      res.send("Web 执行错误：" + err);
+      res.send("Web execution error: " + err);
     } else {
-      res.send("Web 执行结果：" + "启动成功!");
+      res.send("Web execution result: " + "Started successfully!");
     }
   });
 });
 
 app.get("/pm2", (req, res) => {
   let cmdStr = "[ -e ecosystem.config.js ] && pm2 start";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err, stdout) {
     if (err) {
-      res.send("PM2 执行错误：" + err);
+      res.send("PM2 execution error: " + err);
     } else {
-      res.send("PM2 执行结果：" + stdout + "启动成功!");
+      res.send("PM2 execution result: " + stdout + "Started successfully!");
     }
   });
 });
 
 app.get("/web", (req, res) => {
   let cmdStr = "pm2 start web";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err) {
     if (err) {
-      res.send("Web 执行错误：" + err);
+      res.send("Web execution error: " + err);
     } else {
-      res.send("Web 执行结果：" + "启动成功!");
+      res.send("Web execution result: " + "Started successfully!");
     }
   });
 });
@@ -128,11 +129,11 @@ app.get("/web", (req, res) => {
 app.get("/argo", (req, res) => {
 
   let cmdStr = "pm2 start argo";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err) {
     if (err) {
-      res.send("Argo 部署错误：" + err);
+      res.send("Argo deployment error: " + err);
     } else {
-      res.send("Argo 执行结果：" + "启动成功!");
+      res.send("Argo execution result: " + "Started successfully!");
     }
   });
 });
@@ -140,34 +141,34 @@ app.get("/argo", (req, res) => {
 app.get("/nezha", (req, res) => {
 
   let cmdStr = "pm2 start nztz";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err) {
     if (err) {
-      res.send("哪吒部署错误：" + err);
+      res.send("Nezha deployment error: " + err);
     } else {
-      res.send("哪吒执行结果：" + "启动成功!");
+      res.send("Nezha execution result: " + "Started successfully!");
     }
   });
 });
 
 app.get("/apps", (req, res) => {
   let cmdStr = "pm2 start apps";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err) {
     if (err) {
-      res.send("Apps 部署错误：" + err);
+      res.send("Apps deployment error: " + err);
     } else {
-      res.send("Apps 执行结果：" + "启动成功!");
+      res.send("Apps execution result: " + "Started successfully!");
     }
   });
 });
 
 app.get("/info", (req, res) => {
   let cmdStr = "cat /etc/*release | grep -E ^NAME";
-  exec(cmdStr, function (err, stdout, stderr) {
+  exec(cmdStr, function (err, stdout) {
     if (err) {
-      res.send("命令行执行错误：" + err);
+      res.send("Command execution error: " + err);
     } else {
       res.send(
-        "命令行执行结果：\n" +
+        "Command execution result:\n" +
         "Linux System:" +
         stdout +
         "\nRAM:" +
@@ -179,15 +180,16 @@ app.get("/info", (req, res) => {
 });
 
 app.get("/test", (req, res) => {
-  fs.writeFile("./test.txt", "这里是新创建的文件内容!", function (err) {
-    if (err) res.send("创建文件失败，文件系统权限为只读：" + err);
-    else res.send("创建文件成功，文件系统权限为非只读：");
+  fs.writeFile("./test.txt", "This is the newly created file content!", function (err) {
+    if (err) res.send("Failed to create file, file system permission is read-only: " + err);
+    else res.send("File created successfully, file system permission is not read-only.");
   });
 });
 
 function keep_web_alive() {
 
-  exec("curl -m8 http://" + url, function (err, stdout, stderr) {
+  exec("curl -m8 " + url, function (err, stdout, stderr) {
+    console.log("fetching " + url + " ...");
     if (err) {
       console.log("curl error: " + err);
     } else {
@@ -201,7 +203,7 @@ function keep_web_alive() {
         console.log("pm2 already running");
       } else {
         exec(
-          "[ -e ecosystem.config.js ] && pm2 start >/dev/null 2>&1",
+          "[ -e ecosystem.config.js ] && pm2 start",
           function (err, stdout, stderr) {
             if (err) {
               console.log("pm2 start error: " + err);
