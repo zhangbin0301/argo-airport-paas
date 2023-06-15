@@ -663,7 +663,7 @@ EOF
     {
         "name":"nztz",
         "script": "${nezha_agent_new_location}",
-        "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS} --report-delay 3",
+        "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
         "autorestart": true,
         "restart_delay": 1000
 EOF
