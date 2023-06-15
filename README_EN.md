@@ -17,86 +17,108 @@ FROM ghcr.io/3kmfi6hp/argo-airport-paas:main
 1. Fork this repository and deploy using [https://github.com/3Kmfi6HP/paas-deploy](https://github.com/3Kmfi6HP/paas-deploy).
 2. Alternatively, you can deploy directly from this repository, but it may take longer.
 
-## 环境变量说明
+## Environment Variable Description
 
-**_Nezha 的端口设置为 443 就会自动加 --tls_**
+**_If Nezha's port is set to 443, it will automatically add --tls_**
 
-|           变量名           | 是否必须 |                     默认值                     | 备注                                                                                                        |
-| :------------------------: | :------: | :--------------------------------------------: | :---------------------------------------------------------------------------------------------------------- |
-|            UUID            |    否    |      de04add9-5c68-8bab-950c-08cd5320df18      | 可在线生成[https://www.zxgj.cn/g/uuid](https://www.zxgj.cn/g/uuid) 或者用 V2rayN                            |
-|           WSPATH           |    否    |                      argo                      | 勿以 / 开头，各协议路径为 `/WSPATH-协议`，如 `/argo-vless`,`/argo-vmess`,`/argo-trojan`,`/argo-shadowsocks` |
-|            PORT            |    否    |                      3000                      | 容器默认 listen 0.0.0.0  的端口                                                                             |
-|        NEZHA_SERVER        |    否    |                                                | Nezha 的服务地址                                                                                            |
-|         NEZHA_PORT         |    否    |                                                | Nezha 的服务端口                                                                                            |
-|         NEZHA_KEY          |    否    |                                                | Nezha 的 key                                                                                                |
-|         ARGO_AUTH          |    否    |                                                | Argo 项目的认证信息 TOKEN 值                                                                                |
-|        ARGO_DOMAIN         |    否    |                                                | Argo 的域名，须与 ARGO_DOMAIN 必需一起填了才能生效                                                          |
-|    TARGET_HOSTNAME_URL     |    否    | [http://127.0.0.1:8081](http://127.0.0.1:8081) | 使用 v2board 时候可以自定义设置                                                                             |
-|     MAX_MEMORY_RESTART     |    否    |                     128MB                      | PM2 重启时的内存阈值 限制内存使用                                                                           |
-|        SSH_PUB_KEY         |    否    |                                                | 设置 Public Key 用于 ssh 连接 一般不需要设置<br />除非你需要 ssh 连接 例如  ssh-rsa AAAAB3NzaC1yc2EAAA...   |
-| TUNNEL_TRANSPORT_PROTOCOL  |    否    |                      quic                      | 设置 cloudflared 传输协议<br />默认为 quic 可选 http2 <br />对于某些网络不稳定的情况可以尝试 http2          |
-| **接入 v2bord 用到的变量** |    -     |                       -                        |                                                                                                             |
-|          API_HOST          |    是    |                                                | v2board API 服务的域名 URL<br />格式是[https://example.com](https://example.com) \*必须                     |
-|          API_KEY           |    是    |                                                | 在 v2board 获取\*必须                                                                                       |
-|        CERT_DOMAIN         |    否    |                                                | example.com 域名可以顺便填 或者不填                                                                         |
-|          NODE_ID           |    是    |                                                | 是 数字 在 v2board 获取\*必须                                                                               |
+|       Variable Name       | Required |                 Default Value                  | Note                                                                                                                                      |
+| :-----------------------: | :------: | :--------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------- |
+|           UUID            |    No    |      de04add9-5c68-8bab-950c-08cd5320df18      | Can be generated online [https://www.zxgj.cn/g/uuid](https://www.zxgj.cn/g/uuid) or use V2rayN                                            |
+|          WSPATH           |    No    |                      argo                      | Do not start with a '/', each protocol path is `/WSPATH-protocol`, such as `/argo-vless`,`/argo-vmess`,`/argo-trojan`,`/argo-shadowsocks` |
+|           PORT            |    No    |                      3000                      | Container default listens to 0.0.0.0 port                                                                                                 |
+|       NEZHA_SERVER        |    No    |                                                | Nezha's service address                                                                                                                   |
+|        NEZHA_PORT         |    No    |                                                | Nezha's service port                                                                                                                      |
+|         NEZHA_KEY         |    No    |                                                | Nezha's key                                                                                                                               |
+|         ARGO_AUTH         |    No    |                                                | Argo project authentication TOKEN value                                                                                                   |
+|        ARGO_DOMAIN        |    No    |                                                | Argo domain, must be filled together with ARGO_DOMAIN to take effect                                                                      |
+|    TARGET_HOSTNAME_URL    |    No    | [http://127.0.0.1:8081](http://127.0.0.1:8081) | Can be customized when using v2board                                                                                                      |
+|    MAX_MEMORY_RESTART     |    No    |                     128MB                      | PM2 memory threshold for restarting, limit memory usage                                                                                   |
+|        SSH_PUB_KEY        |    No    |                                                | Set Public Key for ssh connection, generally not required<br />unless you need ssh connection e.g. ssh-rsa AAAAB3NzaC1yc2EAAA...          |
+| TUNNEL_TRANSPORT_PROTOCOL |    No    |                      quic                      | Set cloudflared transport protocol<br />default is quic, alternative: http2 <br />try http2 for unstable networks                         |
+| **Variables for v2bord**  |    -     |                       -                        |                                                                                                                                           |
+|         API_HOST          |   Yes    |                                                | v2board API service domain URL<br />format [https://example.com](https://example.com) \* required                                         |
+|          API_KEY          |   Yes    |                                                | Get from v2board\* required                                                                                                               |
+|        CERT_DOMAIN        |    No    |                                                | example.com domain can be filled or left empty                                                                                            |
+|          NODE_ID          |   Yes    |                                                | It is a number, get from v2board\* required                                                                                               |
 
-## 用到的路径 path
+## Path used
 
-| 命令           | 说明                  |
-| -------------- | --------------------- |
-| `<URL>`/list   | 查看节点数据          |
-| `<URL>`/status | 查看后台进程 目录权限 |
-| `<URL>`/listen | 查看后台监听端口      |
-| `<URL>`/test   | 测试是否为只读系统    |
-| `<URL>`/ip     | 查看 IP 网络连接      |
-| `<URL>`/env    | 查看系统所有环境变量  |
-| `<URL>`/info   | 查看系统信息          |
+| Command        | Description                                       |
+| -------------- | ------------------------------------------------- |
+| `<URL>`/list   | View node data                                    |
+| `<URL>`/status | View background process and directory permissions |
+| `<URL>`/listen | View background listening ports                   |
+| `<URL>`/test   | Test if the system is read-only                   |
+| `<URL>`/ip     | View IP network connection                        |
+| `<URL>`/env    | View all system environment variables             |
+| `<URL>`/info   | View system information                           |
 
-## 使用 ssh 连接容器
+## Using ssh to connect to the container
 
-在本地连接容器的 2222 端口的 ssh 需要连接对应容器的节点 IP。
+To connect to the container's ssh on port 2222 locally, you need to connect to the corresponding container's node IP.
 
 ```bash
 ssh -p 2222 root@127.0.0.1
 ```
 
-也可以使用 vscode 的 ssh 插件连接容器，实现远程开发。
+You can also use the ssh plugin for vscode to connect to the container for remote development.
 
 ```yaml
 Host 127.0.0.1
   HostName 127.0.0.1
   Port 2222
-  User root # 你的容器用户名
-  IdentityFile "C:\Users\username\.ssh\id_rsa" # 你的私钥路径
+  User root # your container username
+  IdentityFile "C:\Users\username\.ssh\id_rsa" # your private key path
 ```
 
-需要在环境变量中设置 SSH_PUB_KEY 为你的公钥
-公钥可以在 你的电脑中使用 xshell 生成, 也可以使用以下命令生成
+Set SSH_PUB_KEY in environment variables to your public key
+Public key can be generated on your computer using xshell, or you can use the following command
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C "" -f id_rsa
 ```
 
-路径一般为 /root/.ssh/id_rsa.pub
+The path is usually /root/.ssh/id_rsa.pub
 
-## 查看容器信息
+## View container information
 
-打开浏览器访问 `https://argo.example.com/list` 即可查看节点信息 使用 v2board 这个无效
-**注意** 请将 argo.example.com 替换为你的容器域名，节点信息里的连接域名已经设置为优选 IP，不需要再另外做修改。
+Open your browser and visit `https://argo.example.com/list` to view node information. This is not valid when using v2board.
+**Note** Please replace argo.example.com with your container domain. The connection domain inthe table is an example and should not be used directly.
 
-### 更多信息查看
+## Troubleshooting
 
-浏览器访问 `https://argo.example.com/info` 查看系统信息
+If you encounter issues or need assistance, follow these steps to troubleshoot and resolve common problems:
 
-访问 `https://argo.example.com/env` 查看环境变量
+1. Check the environment variables to ensure they are set correctly.
+2. Verify the domain and ports are properly configured.
+3. Inspect the logs to identify any errors or issues.
+4. Ensure the container is running, and all required processes are active.
+5. Test the connection using a different client or device.
+6. Consult the documentation or seek assistance from the community if the issue persists.
 
-访问 `https://argo.example.com/listen` 查看监听端口
+## Additional Resources
 
-(如果你的容器内服务是监听 3000 端口，那么这里就会显示 3000)， 也可以通过环境变量 PORT 来设置监听端口，这里还会显示容器内的网络连接信息，可以用来排查网络问题。
-其他信息可以省略...
+Here are some helpful resources to further assist you with the configuration and management of your container:
 
-## K8S 部署
+- [V2Ray Official Documentation](https://www.v2ray.com/en/)
+- [Cloudflare Argo Tunnel Documentation](https://developers.cloudflare.com/argo-tunnel/)
+- [Nezha Official Repository](https://github.com/naiba/nezha)
+- [v2board Official Repository](https://github.com/v2board/v2board)
 
-文件示例
+Feel free to consult these resources and forums if you need further assistance or have any questions.
+
+### More Information
+
+Visit `https://argo.example.com/info` in the browser to view system information
+
+Visit `https://argo.example.com/env` to view environment variables
+
+Visit `https://argo.example.com/listen` to view listening ports
+
+(If your container's internal service is listening on port 3000, then it will display 3000 here). You can also set the listening port through the environment variable PORT. This will also display the network connection information inside the container, which can be used to troubleshoot network issues.
+Other information can be omitted...
+
+## K8S Deployment
+
+File example:
 [https://github.com/3Kmfi6HP/argo-airport-paas/blob/main/deploy.example.yaml](https://github.com/3Kmfi6HP/argo-airport-paas/blob/main/deploy.example.yaml)
