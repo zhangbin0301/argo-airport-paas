@@ -230,7 +230,7 @@ function keepArgoAlive() {
     } else {
       exec(ARGO_SCRIPT, (err, stdout, stderr) => {
         if (err) {
-          console.log(`[${new Date()}] Failed to start Argo: ${err}! Retrying...`)
+          console.log(`[${new Date()}] Failed to start Argo:\n ${err}\n ${stdout}\n ${stderr}\n Retrying...`)
           setTimeout(keepArgoAlive, random_interval * 1000)
         } else {
           console.log(`[${new Date()}] Argo started!`)

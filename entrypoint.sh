@@ -600,7 +600,7 @@ generate_pm2_file() {
         app_binary_name_new_location=${PWD}/apps/${APPS_RANDOMNAME}.js
         web_js_file=${PWD}/web.js
         web_js_new_location=${PWD}/${WEBJS_RANDOMNAME}.js
-        cloudflare_tunnel_file=/usr/local/bin/cloudflared
+        cloudflare_tunnel_file=/app/cloudflared
         cloudflare_tunnel_new_location=/usr/local/bin/${ARGO_RANDOMNAME}
         
         # Move and rename files

@@ -16,7 +16,6 @@ npm cache clean --force && \
 # Install cloudflared
 # if download failed, try another mirror, https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
 wget -nv -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && \
-mv cloudflared /usr/local/bin && \
 # Install XrayR
 wget -nv -O /tmp/apps.zip https://github.com/XrayR-project/XrayR/releases/latest/download/XrayR-linux-64.zip && \
 mkdir /app/apps && \
@@ -40,7 +39,7 @@ wget -t 2 -T 10 -N https://github.com/nezhahq/agent/releases/latest/download/nez
 unzip -qod ./ nezha-agent_linux_amd64.zip && \
 rm -f nezha-agent_linux_amd64.zip && \
 # Set permissions
-chmod +x /usr/local/bin/cloudflared && \
+chmod +x /app/cloudflared && \
 chmod +x /app/apps/myapps.js && \
 chmod +x /app/nezha-agent && \
 chmod +x /app/entrypoint.sh && \
