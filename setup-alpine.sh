@@ -11,7 +11,7 @@ echo $TZ >/etc/timezone
 # Install dependencies
 apk add iproute2 coreutils curl unzip wget openssh-server bash openssh-sftp-server --no-cache
 # Install nodejs
-apk add nodejs npm
+apk add nodejs npm --no-cache
 npm install -r package.json
 npm run build
 

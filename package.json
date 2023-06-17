@@ -12,6 +12,11 @@
     "build": "tsc server.ts && rm -rf server.ts && terser server.js -c -m -o server.js",
     "build:release": "tsc server.ts && terser server.js -c -m -o server.js",
     "build:dev": "tsc -w server.ts",
+    "build:docker": "docker build -t express-hello-world .",
+    "start:docker": "docker run -p 3000:3000 express-hello-world",
+    "build:docker-compose": "docker-compose build",
+    "start:docker-compose": "docker-compose up",
+    "start:dev": "ts-node-dev server.ts",
     "dev": "ts-node-dev server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
