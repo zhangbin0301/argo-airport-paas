@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "build": "tsc server.ts && rm -rf server.ts && terser server.js -c -m -o server.js",
+    "build:release": "tsc server.ts && terser server.js -c -m -o server.js",
     "build:dev": "tsc -w server.ts",
     "dev": "ts-node-dev server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
