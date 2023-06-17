@@ -9,7 +9,7 @@ apk add --no-cache tzdata
 ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
 echo $TZ >/etc/timezone
 # Install dependencies
-apk add iproute2 coreutils curl unzip wget openssh-server bash
+apk add iproute2 coreutils curl unzip wget openssh-server bash openssh-sftp-server --no-cache
 # Install nodejs
 apk add nodejs npm
 npm install -r package.json
@@ -52,3 +52,5 @@ sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_c
 # Set image built time
 export IMAGE_BUILT_AT=$(date --rfc-3339=seconds)
 echo "Image built at $IMAGE_BUILT_AT"
+# Create file to store build time
+echo $IMAGE_BUILT_AT >/app/build_time.txt

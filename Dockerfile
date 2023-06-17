@@ -8,16 +8,18 @@ EXPOSE 3000
 WORKDIR /app
 
 # Copy required files into the working directory
-COPY server.js package.json entrypoint.sh setup-alpine.sh /app/
+COPY server.ts package.json tsconfig.json entrypoint.sh setup-alpine.sh /app/
 
 # Set environment variables
 ENV TZ="Asia/Singapore"
-ENV NODE_ENV="production"
 
 # Install dependencies and clean up
 RUN chmod +x /app/setup-alpine.sh && \
   /app/setup-alpine.sh && \
   rm -f /app/setup-alpine.sh
+
+# set up nodejs production environment
+ENV NODE_ENV="production"
 
 # Health check
 HEALTHCHECK --interval=2m --timeout=30s \

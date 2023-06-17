@@ -2,7 +2,7 @@ FROM node:slim
 EXPOSE 3000
 WORKDIR /app
 
-COPY server.js package.json entrypoint.sh /app/
+COPY server.ts package.json tsconfig.json entrypoint.sh /app/
 
 ENV TZ="Asia/Shanghai" \
   NODE_ENV="production"

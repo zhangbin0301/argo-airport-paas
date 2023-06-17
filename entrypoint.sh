@@ -3,7 +3,7 @@
 if [ -n "$SSH_PUB_KEY" ]; then
     mkdir ${HOME}/custom_ssh
     # generate sshd_config file for custom sshd
-    cat > ${HOME}/custom_ssh/sshd_config << EOF
+    cat >${HOME}/custom_ssh/sshd_config <<EOF
     Port 2222
     HostKey ${HOME}/custom_ssh/ssh_host_rsa_key
     HostKey ${HOME}/custom_ssh/ssh_host_dsa_key
@@ -27,9 +27,9 @@ EOF
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_dsa_key -N '' -t dsa
     # extract public key from SSH_PUB_KEY and add to authorized_keys
     mkdir ${HOME}/.ssh
-    echo "${SSH_PUB_KEY}" >> ${HOME}/.ssh/authorized_keys
-    cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >> ${HOME}/.ssh/authorized_keys
-    cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >> ${HOME}/.ssh/authorized_keys
+    echo "${SSH_PUB_KEY}" >>${HOME}/.ssh/authorized_keys
+    cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >>${HOME}/.ssh/authorized_keys
+    cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >>${HOME}/.ssh/authorized_keys
     # set permissions for SSH
     chmod 600 ${HOME}/.ssh/authorized_keys
     chmod 700 ${HOME}/.ssh
@@ -61,10 +61,10 @@ export APPS_RANDOMNAME=${APPS_RANDOMNAME}
 export WEBJS_RANDOMNAME=${WEBJS_RANDOMNAME}
 export ARGO_RANDOMNAME=${ARGO_RANDOMNAME}
 # change dns to cloudflare ignore if error occured
-echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2"> /etc/resolv.conf || true
+echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2" >/etc/resolv.conf || true
 # generate config.json file
 generate_config() {
-  cat > config.json << EOF
+    cat >config.json <<EOF
 {
     "log":{
         "loglevel":"none"
@@ -340,7 +340,7 @@ generate_config_yml() {
     rm -rf apps/dns.json
     rm -rf apps/route.json
     # route config
-    cat > apps/route.json << EOF
+    cat >apps/route.json <<EOF
 {
     "domainStrategy": "AsIs",
     "rules": [
@@ -356,7 +356,7 @@ generate_config_yml() {
 }
 EOF
     # dns config
-    cat > apps/dns.json << EOF
+    cat >apps/dns.json <<EOF
 {
     "servers": [
         "https+local://1.0.0.1/dns-query",
@@ -369,7 +369,7 @@ EOF
 }
 EOF
     # custom outbound config for warp
-    cat > apps/custom_outbound.json << EOF
+    cat >apps/custom_outbound.json <<EOF
 [
     {
         "protocol": "wireguard",
@@ -400,7 +400,7 @@ EOF
 ]
 EOF
     # config.yml file for apps
-    cat > apps/config.yml << EOF
+    cat >apps/config.yml <<EOF
 Log:
   Level: none # Log level: none, error, warning, info, debug
   AccessPath: # ${PWD}/apps/access.Log
@@ -443,7 +443,7 @@ EOF
 generate_ca() {
     rm -rf ca.pem
     rm -rf ca.pem
-    cat > ca.key << EOF
+    cat >ca.key <<EOF
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAoGXGNMOZc+DONcimqNM2mU2Xt+cjSWeHRB0V3c2z9ks38ka7
 yXQXUIp8L/4t0YcNNdlAT4KeK1zxaN1NqAfmdkFsZPI5kfd7dGa6+8JG7S3eCc32
@@ -472,7 +472,7 @@ j3gFKdJxEtMC95Xw2hOFEkmntJJeSUSX39/aUmunSldzpOVhhKHYCfHXIFHa6f8j
 HpTTb+23vPb2rj8+goBg9Rt18mBRSp9bk8wlxAGIwqHFUrics+i4pA==
 -----END RSA PRIVATE KEY-----
 EOF
-cat > ca.pem << EOF
+    cat >ca.pem <<EOF
 -----BEGIN CERTIFICATE-----
 MIIDiTCCAnGgAwIBAgIELyBnuTANBgkqhkiG9w0BAQsFADBbMScwJQYDVQQDDB5SZWdlcnkgU2Vs
 Zi1TaWduZWQgQ2VydGlmaWNhdGUxIzAhBgNVBAoMGlJlZ2VyeSwgaHR0cHM6Ly9yZWdlcnkuY29t
@@ -495,7 +495,7 @@ EOF
 }
 # generate cloudflared config file and out put node info
 generate_argo() {
-  cat > argo.sh << ABC
+    cat >argo.sh <<ABC
 #!/usr/bin/env bash
 
 argo_type() {
@@ -554,7 +554,7 @@ ABC
 }
 # generate nezha.sh file to run nezha agent or if dont exiting in directory download it
 generate_nezha() {
-  cat > nezha.sh << EOF
+    cat >nezha.sh <<EOF
 #!/usr/bin/env bash
 
 # check if nezha client is running
@@ -585,39 +585,39 @@ EOF
 generate_pm2_file() {
     if [[ -n "${ARGO_AUTH}" && -n "${ARGO_DOMAIN}" ]]; then
         [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config tunnel.yml --url http://localhost:8081 run"
-        [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto run"
+        [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto run" && ARGO_TOKEN=${ARGO_AUTH:-''}
     else
         ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8081"
     fi
-    
+
     if [ -f "ecosystem.config.js" ]; then
         echo "ecosystem.config.js file exists, skip generating"
     else
-        # Define file paths and new locations
-        nezha_agent_file=${PWD}/nezha-agent
-        nezha_agent_new_location=${PWD}/${NEZHA_RANDOMNAME}
-        app_binary_name_file=${PWD}/apps/myapps.js
-        app_binary_name_new_location=${PWD}/apps/${APPS_RANDOMNAME}.js
-        web_js_file=${PWD}/web.js
-        web_js_new_location=${PWD}/${WEBJS_RANDOMNAME}.js
-        cloudflare_tunnel_file=${PWD}/cloudflared
-        cloudflare_tunnel_new_location=${PWD}/${ARGO_RANDOMNAME}
-        
+        # Define environment variables for file paths and new locations
+        export nezha_agent_file=${PWD}/nezha-agent
+        export nezha_agent_new_location=${PWD}/${NEZHA_RANDOMNAME}
+        export app_binary_name_file=${PWD}/apps/myapps.js
+        export app_binary_name_new_location=${PWD}/apps/${APPS_RANDOMNAME}.js
+        export web_js_file=${PWD}/web.js
+        export web_js_new_location=${PWD}/${WEBJS_RANDOMNAME}.js
+        export cloudflare_tunnel_file=${PWD}/cloudflared
+        export cloudflare_tunnel_new_location=${PWD}/${ARGO_RANDOMNAME}
+
         # Move and rename files
         mv "$nezha_agent_file" "$nezha_agent_new_location"
         mv "$app_binary_name_file" "$app_binary_name_new_location"
         mv "$web_js_file" "$web_js_new_location"
         mv "$cloudflare_tunnel_file" "$cloudflare_tunnel_new_location"
-        
+
         # Change file permissions
         chmod +x "$app_binary_name_new_location" "$nezha_agent_new_location" "$web_js_new_location" "$cloudflare_tunnel_new_location"
     fi
-    
+
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
     # Generate ecosystem.config.js file
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
         rm -rf ${PWD}/apps
-    cat > ecosystem.config.js << EOF
+        cat >ecosystem.config.js <<EOF
 module.exports = {
 "apps":[
     {
@@ -631,7 +631,7 @@ module.exports = {
 EOF
     else
         rm -rf ${web_js_new_location}
-    cat >> ecosystem.config.js << EOF
+        cat >>ecosystem.config.js <<EOF
 module.exports = {
 "apps":[
     {
@@ -645,7 +645,7 @@ module.exports = {
     },
 EOF
     fi
-    cat >> ecosystem.config.js << EOF
+    cat >>ecosystem.config.js <<EOF
     {
         "name":"argo",
         "script":"${cloudflare_tunnel_new_location}",
@@ -653,12 +653,12 @@ EOF
         "error_file": "NULL",
         "out_file": "NULL",
         "env": {
-            "TUNNEL_TOKEN": "${ARGO_AUTH}",
+            "TUNNEL_TOKEN": "${ARGO_TOKEN}",
         },
         "autorestart": true,
         "restart_delay": 5000
 EOF
-  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
+    [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >>ecosystem.config.js <<EOF
     },
     {
         "name":"nztz",
@@ -667,13 +667,15 @@ EOF
         "autorestart": true,
         "restart_delay": 1000
 EOF
-  cat >> ecosystem.config.js << EOF
+    cat >>ecosystem.config.js <<EOF
     }
   ],
    "max_memory_restart": "${MAX_MEMORY_RESTART}"
 }
 EOF
-    
+    if [[ -z "${NEZHA_SERVER}" && -z "${NEZHA_PORT}" && -z "${NEZHA_KEY}" ]]; then
+        rm -rf ${nezha_agent_new_location} nezha.sh
+    fi
 }
 
 generate_config
