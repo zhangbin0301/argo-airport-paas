@@ -1,40 +1,42 @@
 #!/usr/bin/env bash
 # install sshd and generate host keys
-mkdir ${HOME}/custom_ssh
-cat << EOF > ${HOME}/custom_ssh/sshd_config
-Port 2222
-HostKey ${HOME}/custom_ssh/ssh_host_rsa_key
-HostKey ${HOME}/custom_ssh/ssh_host_dsa_key
-AuthorizedKeysFile  ${HOME}/.ssh/authorized_keys
-PasswordAuthentication no
-#PermitEmptyPasswords yes
-PermitRootLogin yes
-PubkeyAuthentication yes
-## Enable DEBUG log.
-LogLevel DEBUG
-ChallengeResponseAuthentication no
-# UsePAM no
-X11Forwarding yes
-PrintMotd no
-AcceptEnv LANG LC_*
-Subsystem   sftp    /usr/lib/ssh/sftp-server
-PidFile ${HOME}/custom_ssh/sshd.pid
-EOF
 if [ -n "$SSH_PUB_KEY" ]; then
+    mkdir ${HOME}/custom_ssh
+    # generate sshd_config file for custom sshd
+    cat >${HOME}/custom_ssh/sshd_config <<EOF
+    Port 2222
+    HostKey ${HOME}/custom_ssh/ssh_host_rsa_key
+    HostKey ${HOME}/custom_ssh/ssh_host_dsa_key
+    AuthorizedKeysFile  ${HOME}/.ssh/authorized_keys
+    PasswordAuthentication no
+    #PermitEmptyPasswords yes
+    PermitRootLogin yes
+    PubkeyAuthentication yes
+    ## Enable DEBUG log.
+    LogLevel DEBUG
+    ChallengeResponseAuthentication no
+    # UsePAM no
+    X11Forwarding yes
+    PrintMotd no
+    AcceptEnv LANG LC_*
+    Subsystem   sftp    /usr/lib/ssh/sftp-server
+    PidFile ${HOME}/custom_ssh/sshd.pid
+EOF
+    # generate ssh host keys
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_rsa_key -N '' -t rsa
     ssh-keygen -f ${HOME}/custom_ssh/ssh_host_dsa_key -N '' -t dsa
+    # extract public key from SSH_PUB_KEY and add to authorized_keys
     mkdir ${HOME}/.ssh
-    # echo "${SSH_HOST_RSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_rsa_key
-    # echo "${SSH_HOST_DSA_KEY}" >> ${HOME}/custom_ssh/ssh_host_dsa_key
-    echo "${SSH_PUB_KEY}" >> ${HOME}/.ssh/authorized_keys
-    cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >> ${HOME}/.ssh/authorized_keys
-    cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >> ${HOME}/.ssh/authorized_keys
+    echo "${SSH_PUB_KEY}" >>${HOME}/.ssh/authorized_keys
+    cat ${HOME}/custom_ssh/ssh_host_rsa_key.pub >>${HOME}/.ssh/authorized_keys
+    cat ${HOME}/custom_ssh/ssh_host_dsa_key.pub >>${HOME}/.ssh/authorized_keys
+    # set permissions for SSH
     chmod 600 ${HOME}/.ssh/authorized_keys
     chmod 700 ${HOME}/.ssh
     chmod 600 ${HOME}/custom_ssh/*
     chmod 644 ${HOME}/custom_ssh/sshd_config
+    # start sshd in background
     /usr/sbin/sshd -f ${HOME}/custom_ssh/sshd_config -D &
-    echo "----- Process ID : ${HOME}/custom_ssh/sshd.pid -------"
 fi
 # 设置各变量
 WSPATH=${WSPATH:-'argo'}
@@ -42,18 +44,29 @@ UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
 MAX_MEMORY_RESTART=${MAX_MEMORY_RESTART:-'128M'}
 CERT_DOMAIN=${CERT_DOMAIN:-'example.com'}
 PANEL_TYPE=${PANEL_TYPE:-'NewV2board'}
-RELEASE_RANDOMNESS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-RELEASE_RANDOMNESS2=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-RELEASE_RANDOMNESS3=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-RELEASE_RANDOMNESS4=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1))
-# change dns to cloudflare
-echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2"> /etc/resolv.conf
+ARGO_DOMAIN=${ARGO_DOMAIN:-'example.com'}
+
+# random function to generate random names
+generate_random_name() {
+    tr -dc 'A-Za-z0-9' </dev/urandom | head -c $(shuf -i 6-20 -n 1)
+}
+# generate random names for echo files
+NEZHA_RANDOMNAME=$(generate_random_name)
+APPS_RANDOMNAME=$(generate_random_name)
+WEBJS_RANDOMNAME=$(generate_random_name)
+ARGO_RANDOMNAME=$(generate_random_name)
+# add ramdom names to env
+export NEZHA_RANDOMNAME=${NEZHA_RANDOMNAME}
+export APPS_RANDOMNAME=${APPS_RANDOMNAME}
+export WEBJS_RANDOMNAME=${WEBJS_RANDOMNAME}
+export ARGO_RANDOMNAME=${ARGO_RANDOMNAME}
+# change dns to cloudflare ignore if error occured
+echo -e "nameserver 1.1.1.2\nnameserver 1.0.0.2" >/etc/resolv.conf || true
+# generate config.json file
 generate_config() {
-  cat > config.json << EOF
+    cat >config.json <<EOF
 {
     "log":{
-        "access":"/dev/null",
-        "error":"/dev/null",
         "loglevel":"none"
     },
     "inbounds":[
@@ -87,6 +100,10 @@ generate_config() {
                     {
                         "path":"/${WSPATH}-shadowsocks",
                         "dest":3005
+                    },
+                    {
+                        "path":"/${WSPATH}-warp",
+                        "dest":3006
                     }
                 ]
             },
@@ -221,6 +238,36 @@ generate_config() {
                 ],
                 "metadataOnly":false
             }
+        },
+        {
+            "port":3006,
+            "tag":"WARP-PLUS",
+            "listen":"127.0.0.1",
+            "protocol":"vless",
+            "settings":{
+                "clients":[
+                    {
+                        "id":"${UUID}",
+                        "level":0
+                    }
+                ],
+                "decryption":"none"
+            },
+            "streamSettings":{
+                "network":"ws",
+                "security":"none",
+                "wsSettings":{
+                    "path":"/${WSPATH}-warp"
+                }
+            },
+            "sniffing":{
+                "enabled":true,
+                "destOverride":[
+                    "http",
+                    "tls"
+                ],
+                "metadataOnly":false
+            }
         }
     ],
     "dns":{
@@ -233,21 +280,34 @@ generate_config() {
             "protocol":"freedom"
         },
         {
-            "tag":"WARP",
-            "protocol":"wireguard",
-            "settings":{
-                "secretKey":"yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs=",
-                "address":[
+          "protocol": "blackhole",
+          "tag": "blocked"
+        },
+        {
+            "protocol": "wireguard",
+            "settings": {
+                "address": [
                     "172.16.0.2/32",
                     "2606:4700:110:86c2:d7ca:13d:b14a:e7bf/128"
                 ],
-                "peers":[
+                "peers": [
                     {
-                        "publicKey":"bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
-                        "endpoint":"162.159.193.10:2408"
+                        "allowedIPs": [
+                            "0.0.0.0/0",
+                            "::/0"
+                        ],
+                        "endpoint": "162.159.193.10:2408",
+                        "publicKey": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
                     }
-                ]
-            }
+                ],
+                "reserved": [
+                    249,
+                    159,
+                    96
+                ],
+                "secretKey": "yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs="
+            },
+            "tag": "WARP"
         }
     ],
     "routing":{
@@ -260,23 +320,95 @@ generate_config() {
                     "domain:ai.com"
                 ],
                 "outboundTag":"WARP"
+            },
+            {
+                "type":"field",
+                "inboundTag":[
+                    "WARP-PLUS"
+                ],
+                "outboundTag":"WARP"
             }
         ]
     }
 }
 EOF
 }
+# generate config.yml file
 generate_config_yml() {
     rm -rf apps/config.yml
-    cat > apps/config.yml << EOF
+    rm -rf apps/custom_outbound.json
+    rm -rf apps/dns.json
+    rm -rf apps/route.json
+    # route config
+    cat >apps/route.json <<EOF
+{
+    "domainStrategy": "AsIs",
+    "rules": [
+        {
+            "type": "field",
+            "outboundTag": "WARP",
+            "domain": [
+                "domain:openai.com",
+                "domain:ai.com"
+            ]
+        }
+    ]
+}
+EOF
+    # dns config
+    cat >apps/dns.json <<EOF
+{
+    "servers": [
+        "https+local://1.0.0.1/dns-query",
+        "https+local://8.8.4.4/dns-query",
+        "https+local://8.8.8.8/dns-query",
+        "https+local://9.9.9.9/dns-query",
+        "1.1.1.2",
+        "1.0.0.2"
+    ]
+}
+EOF
+    # custom outbound config for warp
+    cat >apps/custom_outbound.json <<EOF
+[
+    {
+        "protocol": "wireguard",
+        "settings": {
+            "address": [
+                "172.16.0.2/32",
+                "2606:4700:110:86c2:d7ca:13d:b14a:e7bf/128"
+            ],
+            "peers": [
+                {
+                    "allowedIPs": [
+                        "0.0.0.0/0",
+                        "::/0"
+                    ],
+                    "endpoint": "162.159.193.10:2408",
+                    "publicKey": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+                }
+            ],
+            "reserved": [
+                249,
+                159,
+                96
+            ],
+            "secretKey": "yG/Phr+fhiBR95b22GThzxGs/Fccyl0U9H4X0GwEeHs="
+        },
+        "tag": "WARP"
+    }
+]
+EOF
+    # config.yml file for apps
+    cat >apps/config.yml <<EOF
 Log:
   Level: none # Log level: none, error, warning, info, debug
-  AccessPath: # /etc/XrayR/access.Log
-  ErrorPath: # /etc/XrayR/error.log
-DnsConfigPath: # /etc/XrayR/dns.json # Path to dns config, check https://xtls.github.io/config/dns.html for help
-RouteConfigPath: # /etc/XrayR/route.json # Path to route config, check https://xtls.github.io/config/routing.html for help
-InboundConfigPath: # /etc/XrayR/custom_inbound.json # Path to custom inbound config, check https://xtls.github.io/config/inbound.html for help
-OutboundConfigPath: # /etc/XrayR/custom_outbound.json # Path to custom outbound config, check https://xtls.github.io/config/outbound.html for help
+  AccessPath: # ${PWD}/apps/access.Log
+  ErrorPath: # ${PWD}/apps/error.log
+DnsConfigPath: ${PWD}/apps/dns.json # Path to dns config
+RouteConfigPath: ${PWD}/apps/route.json # Path to route config
+InboundConfigPath: # ${PWD}/apps/custom_inbound.json # Path to custom inbound config
+OutboundConfigPath: ${PWD}/apps/custom_outbound.json # Path to custom outbound config
 ConnectionConfig:
   Handshake: 10 # Handshake time limit, Second
   ConnIdle: 60 # Connection idle time limit, Second
@@ -299,18 +431,19 @@ Nodes:
     ControllerConfig:
       ListenIP: 127.0.0.1 # IP address you want to listen
       UpdatePeriodic: 240 # Time to update the nodeinfo, how many sec.
-      EnableDNS: false # Use custom DNS config, Please ensure that you set the dns.json well
+      EnableDNS: true # Use custom DNS config, Please ensure that you set the dns.json well
       CertConfig:
         CertMode: file # Option about how to get certificate: none, file, http, tls, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "${CERT_DOMAIN}" # Domain to cert
-        CertFile: /app/ca.pem # Provided if the CertMode is file
-        KeyFile: /app/ca.key
+        CertFile: ${PWD}/ca.pem # Provided if the CertMode is file
+        KeyFile: ${PWD}/ca.key
 EOF
 }
+# generate https cretificate file
 generate_ca() {
     rm -rf ca.pem
     rm -rf ca.pem
-    cat > ca.key << EOF
+    cat >ca.key <<EOF
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAoGXGNMOZc+DONcimqNM2mU2Xt+cjSWeHRB0V3c2z9ks38ka7
 yXQXUIp8L/4t0YcNNdlAT4KeK1zxaN1NqAfmdkFsZPI5kfd7dGa6+8JG7S3eCc32
@@ -339,7 +472,7 @@ j3gFKdJxEtMC95Xw2hOFEkmntJJeSUSX39/aUmunSldzpOVhhKHYCfHXIFHa6f8j
 HpTTb+23vPb2rj8+goBg9Rt18mBRSp9bk8wlxAGIwqHFUrics+i4pA==
 -----END RSA PRIVATE KEY-----
 EOF
-cat > ca.pem << EOF
+    cat >ca.pem <<EOF
 -----BEGIN CERTIFICATE-----
 MIIDiTCCAnGgAwIBAgIELyBnuTANBgkqhkiG9w0BAQsFADBbMScwJQYDVQQDDB5SZWdlcnkgU2Vs
 Zi1TaWduZWQgQ2VydGlmaWNhdGUxIzAhBgNVBAoMGlJlZ2VyeSwgaHR0cHM6Ly9yZWdlcnkuY29t
@@ -360,54 +493,56 @@ TYehJJQC3B5VipbnQNtykE6TQJZrKv2vBVzcFfli9W8gBpD6JN0kc3OMf3txev6BNv3s7S1r
 -----END CERTIFICATE-----
 EOF
 }
-
+# generate cloudflared config file and out put node info
 generate_argo() {
-  cat > argo.sh << ABC
+    cat >argo.sh <<ABC
 #!/usr/bin/env bash
 
 argo_type() {
   if [[ -n "\${ARGO_AUTH}" && -n "\${ARGO_DOMAIN}" ]]; then
-    [[ \$ARGO_AUTH =~ TunnelSecret ]] && echo \$ARGO_AUTH > tunnel.json && echo -e "tunnel: \$(cut -d\" -f12 <<< \$ARGO_AUTH)\ncredentials-file: /app/tunnel.json" > tunnel.yml
+    [[ \$ARGO_AUTH =~ TunnelSecret ]] && echo \$ARGO_AUTH > tunnel.json && echo -e "tunnel: \$(cut -d\" -f12 <<< \$ARGO_AUTH)\ncredentials-file: ${PWD}/tunnel.json" > tunnel.yml
   else
     ARGO_DOMAIN=\$(cat argo.log | grep -o "info.*https://.*trycloudflare.com" | sed "s@.*https://@@g" | tail -n 1)
   fi
 }
 
 export_list() {
-  VMESS="{ \"v\": \"2\", \"ps\": \"Argo-Vmess\", \"add\": \"cdn.chigua.tk\", \"port\": \"443\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\${ARGO_DOMAIN}\", \"path\": \"/${WSPATH}-vmess?ed=2048\", \"tls\": \"tls\", \"sni\": \"\${ARGO_DOMAIN}\", \"alpn\": \"\" }"
+  VMESS="{ \"v\": \"2\", \"ps\": \"Argo-Vmess\", \"add\": \"chrome.cloudflare-dns.com\", \"port\": \"443\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\${ARGO_DOMAIN}\", \"path\": \"/${WSPATH}-vmess?ed=2048\", \"tls\": \"tls\", \"sni\": \"\${ARGO_DOMAIN}\", \"alpn\": \"\" }"
 
   cat > list << EOF
 *******************************************
-V2-rayN:
+V2rayN:
 ----------------------------
-vless://${UUID}@cdn.chigua.tk:443?encryption=none&security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-vless?ed=2048#Argo-Vless
+vless://${UUID}@chrome.cloudflare-dns.com:443?encryption=none&security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-vless?ed=2048#Argo-${ARGO_DOMAIN}-Vless
+----------------------------
+vless://${UUID}@chrome.cloudflare-dns.com:443?encryption=none&security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-warp?ed=2048#Argo-${ARGO_DOMAIN}-Warp-Plus
 ----------------------------
 vmess://\$(echo \$VMESS | base64 -w0)
 ----------------------------
-trojan://${UUID}@cdn.chigua.tk:443?security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-trojan?ed=2048#Argo-Trojan
+trojan://${UUID}@chrome.cloudflare-dns.com:443?security=tls&sni=\${ARGO_DOMAIN}&type=ws&host=\${ARGO_DOMAIN}&path=%2F${WSPATH}-trojan?ed=2048#Argo-${ARGO_DOMAIN}-Trojan
 ----------------------------
-ss://$(echo "chacha20-ietf-poly1305:${UUID}@cdn.chigua.tk:443" | base64 -w0)@cdn.chigua.tk:443#Argo-Shadowsocks
+ss://$(echo "chacha20-ietf-poly1305:${UUID}@chrome.cloudflare-dns.com:443" | base64 -w0)@chrome.cloudflare-dns.com:443#Argo-${ARGO_DOMAIN}-Shadowsocks
 由于该软件导出的链接不全，请自行处理如下: 传输协议: WS ， 伪装域名: \${ARGO_DOMAIN} ，路径: /${WSPATH}-shadowsocks?ed=2048 ， 传输层安全: tls ， sni: \${ARGO_DOMAIN}
 *******************************************
 小火箭:
 ----------------------------
-vless://${UUID}@cdn.chigua.tk:443?encryption=none&security=tls&type=ws&host=\${ARGO_DOMAIN}&path=/${WSPATH}-vless?ed=2048&sni=\${ARGO_DOMAIN}#Argo-Vless
+vless://${UUID}@chrome.cloudflare-dns.com:443?encryption=none&security=tls&type=ws&host=\${ARGO_DOMAIN}&path=/${WSPATH}-vless?ed=2048&sni=\${ARGO_DOMAIN}#Argo-${ARGO_DOMAIN}-Vless
 ----------------------------
-vmess://$(echo "none:${UUID}@cdn.chigua.tk:443" | base64 -w0)?remarks=Argo-Vmess&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-vmess?ed=2048&obfs=websocket&tls=1&peer=\${ARGO_DOMAIN}&alterId=0
+vmess://$(echo "none:${UUID}@chrome.cloudflare-dns.com:443" | base64 -w0)?remarks=Argo-Vmess&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-vmess?ed=2048&obfs=websocket&tls=1&peer=\${ARGO_DOMAIN}&alterId=0
 ----------------------------
-trojan://${UUID}@cdn.chigua.tk:443?peer=\${ARGO_DOMAIN}&plugin=obfs-local;obfs=websocket;obfs-host=\${ARGO_DOMAIN};obfs-uri=/${WSPATH}-trojan?ed=2048#Argo-Trojan
+trojan://${UUID}@chrome.cloudflare-dns.com:443?peer=\${ARGO_DOMAIN}&plugin=obfs-local;obfs=websocket;obfs-host=\${ARGO_DOMAIN};obfs-uri=/${WSPATH}-trojan?ed=2048#Argo-${ARGO_DOMAIN}-Trojan
 ----------------------------
-ss://$(echo "chacha20-ietf-poly1305:${UUID}@cdn.chigua.tk:443" | base64 -w0)?obfs=wss&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-shadowsocks?ed=2048#Argo-Shadowsocks
+ss://$(echo "chacha20-ietf-poly1305:${UUID}@chrome.cloudflare-dns.com:443" | base64 -w0)?obfs=wss&obfsParam=\${ARGO_DOMAIN}&path=/${WSPATH}-shadowsocks?ed=2048#Argo-${ARGO_DOMAIN}-Shadowsocks
 *******************************************
 Clash:
 ----------------------------
-- {name: Argo-Vless, type: vless, server: cdn.chigua.tk, port: 443, uuid: ${UUID}, tls: true, servername: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: {path: /${WSPATH}-vless?ed=2048, headers: { Host: \${ARGO_DOMAIN}}}, udp: true}
+- {name: Argo-${ARGO_DOMAIN}-Vless, type: vless, server: chrome.cloudflare-dns.com, port: 443, uuid: ${UUID}, tls: true, servername: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: {path: /${WSPATH}-vless?ed=2048, headers: { Host: \${ARGO_DOMAIN}}}, udp: true}
 ----------------------------
-- {name: Argo-Vmess, type: vmess, server: cdn.chigua.tk, port: 443, uuid: ${UUID}, alterId: 0, cipher: none, tls: true, skip-cert-verify: true, network: ws, ws-opts: {path: /${WSPATH}-vmess?ed=2048, headers: {Host: \${ARGO_DOMAIN}}}, udp: true}
+- {name: Argo-${ARGO_DOMAIN}-Vmess, type: vmess, server: chrome.cloudflare-dns.com, port: 443, uuid: ${UUID}, alterId: 0, cipher: none, tls: true, skip-cert-verify: true, network: ws, ws-opts: {path: /${WSPATH}-vmess?ed=2048, headers: {Host: \${ARGO_DOMAIN}}}, udp: true}
 ----------------------------
-- {name: Argo-Trojan, type: trojan, server: cdn.chigua.tk, port: 443, password: ${UUID}, udp: true, tls: true, sni: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: { path: /${WSPATH}-trojan?ed=2048, headers: { Host: \${ARGO_DOMAIN} } } }
+- {name: Argo-${ARGO_DOMAIN}-Trojan, type: trojan, server: chrome.cloudflare-dns.com, port: 443, password: ${UUID}, udp: true, tls: true, sni: \${ARGO_DOMAIN}, skip-cert-verify: false, network: ws, ws-opts: { path: /${WSPATH}-trojan?ed=2048, headers: { Host: \${ARGO_DOMAIN} } } }
 ----------------------------
-- {name: Argo-Shadowsocks, type: ss, server: cdn.chigua.tk, port: 443, cipher: chacha20-ietf-poly1305, password: ${UUID}, plugin: v2ray-plugin, plugin-opts: { mode: websocket, host: \${ARGO_DOMAIN}, path: /${WSPATH}-shadowsocks?ed=2048, tls: true, skip-cert-verify: false, mux: false } }
+- {name: Argo-${ARGO_DOMAIN}-Shadowsocks, type: ss, server: chrome.cloudflare-dns.com, port: 443, cipher: chacha20-ietf-poly1305, password: ${UUID}, plugin: v2ray-plugin, plugin-opts: { mode: websocket, host: \${ARGO_DOMAIN}, path: /${WSPATH}-shadowsocks?ed=2048, tls: true, skip-cert-verify: false, mux: false } }
 *******************************************
 EOF
   cat list
@@ -417,24 +552,24 @@ argo_type
 export_list
 ABC
 }
-
+# generate nezha.sh file to run nezha agent or if dont exiting in directory download it
 generate_nezha() {
-  cat > nezha.sh << EOF
+    cat >nezha.sh <<EOF
 #!/usr/bin/env bash
 
-# 检测是否已运行
+# check if nezha client is running
 check_run() {
-  [[ \$(pgrep -laf ${RELEASE_RANDOMNESS}) ]] && echo "哪吒客户端正在运行中" && exit
+  [[ \$(pgrep -laf ${NEZHA_RANDOMNAME}) ]] && echo "哪吒客户端正在运行中" && exit
 }
 
-# 三个变量不全则不安装哪吒客户端
+# check if variable is empty or not
 check_variable() {
   [[ -z "\${NEZHA_SERVER}" || -z "\${NEZHA_PORT}" || -z "\${NEZHA_KEY}" ]] && exit
 }
 
-# 下载最新版本 Nezha Agent
+# if nezha client is not in directory download it
 download_agent() {
-  if [ ! -e ${RELEASE_RANDOMNESS} ]; then
+  if [ ! -e ${NEZHA_RANDOMNAME} ]; then
     URL="https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip"
     wget -t 2 -T 10 -N \${URL}
     unzip -qod ./ nezha-agent_linux_amd64.zip && rm -f nezha-agent_linux_amd64.zip
@@ -446,61 +581,84 @@ check_variable
 download_agent
 EOF
 }
-
+# generate pm2 file
 generate_pm2_file() {
     if [[ -n "${ARGO_AUTH}" && -n "${ARGO_DOMAIN}" ]]; then
         [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config tunnel.yml --url http://localhost:8081 run"
-        [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto run"
+        [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto run" && ARGO_TOKEN=${ARGO_AUTH:-''}
     else
         ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8081"
     fi
-    
+
     if [ -f "ecosystem.config.js" ]; then
-        echo "ecosystem.config.js 文件存在,跳过移动命令"
+        echo "ecosystem.config.js file exists, skip generating"
     else
-        nezha_agent_file=/app/nezha-agent
-        nezha_agent_new_location=/app/${RELEASE_RANDOMNESS}
-        app_binary_name_file=/app/apps/myapps.js
-        app_binary_name_new_location=/app/apps/${RELEASE_RANDOMNESS2}.js
-        web_js_file=/app/web.js
-        web_js_new_location=/app/${RELEASE_RANDOMNESS3}.js
-        cloudflare_tunnel_file=/usr/local/bin/cloudflared
-        cloudflare_tunnel_new_location=/usr/local/bin/${RELEASE_RANDOMNESS4}
+        # Define environment variables for file paths and new locations
+        export nezha_agent_file=${PWD}/nezha-agent
+        export nezha_agent_new_location=${PWD}/${NEZHA_RANDOMNAME}
+        export app_binary_name_file=${PWD}/apps/myapps.js
+        export app_binary_name_new_location=${PWD}/apps/${APPS_RANDOMNAME}.js
+        export web_js_file=${PWD}/web.js
+        export web_js_new_location=${PWD}/${WEBJS_RANDOMNAME}.js
+        export cloudflare_tunnel_file=${PWD}/cloudflared
+        export cloudflare_tunnel_new_location=${PWD}/${ARGO_RANDOMNAME}
+
+        # Move and rename files
         mv "$nezha_agent_file" "$nezha_agent_new_location"
         mv "$app_binary_name_file" "$app_binary_name_new_location"
         mv "$web_js_file" "$web_js_new_location"
         mv "$cloudflare_tunnel_file" "$cloudflare_tunnel_new_location"
-        chmod +x "$app_binary_name_new_location"
-        chmod +x "$nezha_agent_new_location"
-        chmod +x "$web_js_new_location"
-        chmod +x "$cloudflare_tunnel_new_location"
+
+        # Change file permissions
+        chmod +x "$app_binary_name_new_location" "$nezha_agent_new_location" "$web_js_new_location" "$cloudflare_tunnel_new_location"
     fi
-    
-    # NEZHA_PORT_TLS=${NEZHA_PORT:=80}
+
     [[ $NEZHA_PORT -eq 443 ]] && NEZHA_PORT_TLS='--tls'
+    # Generate ecosystem.config.js file
     if [[ -z "${API_HOST}" || -z "${API_KEY}" ]]; then
-    cat > ecosystem.config.js << EOF
+        rm -rf ${PWD}/apps
+        cat >ecosystem.config.js <<EOF
 module.exports = {
 "apps":[
     {
         "name":"web",
         "script":"${web_js_new_location} run",
-        "log_file": "/dev/null",
+        "error_file": "NULL",
+        "out_file": "NULL",
         "autorestart": true,
         "restart_delay": 1000
     },
+EOF
+    else
+        rm -rf ${web_js_new_location}
+        cat >>ecosystem.config.js <<EOF
+module.exports = {
+"apps":[
+    {
+        "name":"apps",
+        "script":"${app_binary_name_new_location} run",
+        "cwd":"${PWD}/apps",
+        "error_file": "NULL",
+        "out_file": "NULL",
+        "autorestart": true,
+        "restart_delay": 1000
+    },
+EOF
+    fi
+    cat >>ecosystem.config.js <<EOF
     {
         "name":"argo",
         "script":"${cloudflare_tunnel_new_location}",
         "args":"${ARGO_ARGS}",
-        "log_file": "/dev/null",
+        "error_file": "NULL",
+        "out_file": "NULL",
         "env": {
-          "TUNNEL_TOKEN": "${ARGO_AUTH}",
+            "TUNNEL_TOKEN": "${ARGO_TOKEN}",
         },
         "autorestart": true,
-        "restart_delay": 1000
+        "restart_delay": 5000
 EOF
-  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
+    [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >>ecosystem.config.js <<EOF
     },
     {
         "name":"nztz",
@@ -509,50 +667,14 @@ EOF
         "autorestart": true,
         "restart_delay": 1000
 EOF
-  cat >> ecosystem.config.js << EOF
+    cat >>ecosystem.config.js <<EOF
     }
   ],
    "max_memory_restart": "${MAX_MEMORY_RESTART}"
 }
 EOF
-    else
-    cat > ecosystem.config.js << EOF
-module.exports = {
-  "apps": [
-    {
-        "name": "apps",
-        "script": "${app_binary_name_new_location} run",
-        "log_file": "/dev/null",
-        "cwd": "/app/apps",
-        "autorestart": true,
-        "restart_delay": 1000
-    },
-    {
-        "name": "argo",
-        "script": "${cloudflare_tunnel_new_location}",
-        "args": "${ARGO_ARGS}",
-        "log_file": "/dev/null",
-        "env": {
-          "TUNNEL_TOKEN": "${ARGO_AUTH}",
-          },
-        "autorestart": true,
-        "restart_delay": 1000
-EOF
-  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
-    },
-    {
-        "name": "nztz",
-        "script": "${nezha_agent_new_location}",
-        "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_PORT_TLS}",
-        "autorestart": true,
-        "restart_delay": 1000
-EOF
-  cat >> ecosystem.config.js << EOF
-    }
-  ],
-   "max_memory_restart": "${MAX_MEMORY_RESTART}"
-}
-EOF
+    if [[ -z "${NEZHA_SERVER}" && -z "${NEZHA_PORT}" && -z "${NEZHA_KEY}" ]]; then
+        rm -rf ${nezha_agent_new_location} nezha.sh
     fi
 }
 
@@ -562,7 +684,7 @@ generate_ca
 generate_argo
 
 if [ -f "ecosystem.config.js" ]; then
-    echo "ecosystem.config.js 文件存在,跳过生成命令"
+    echo "ecosystem.config.js file exists, skip generating"
 else
     generate_nezha
     generate_pm2_file
